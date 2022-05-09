@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Logs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Logs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Logs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="Logs\**" />
+    </ItemGroup>
+
+</Project>
