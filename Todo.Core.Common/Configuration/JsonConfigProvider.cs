@@ -9,7 +9,7 @@ public class JsonConfigProvider : IConfigProvider
     public JsonConfigProvider()
     {
         var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddJsonFile("appSettings.json");
+        configBuilder.AddJsonFile("appsettings.json");
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         if (!string.IsNullOrEmpty(environment)) configBuilder.AddJsonFile($"appSettings.{environment}.json");
 
