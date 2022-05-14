@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Autofac;
 using NHibernate.Linq;
@@ -25,7 +26,7 @@ public class RepositoryTests : BaseTest
         var user = new User
         {
             FirstName = "Test User",
-            UserId = "dummyUser"
+            UserId = "dummyUser" + Guid.NewGuid()
         };
         using var uow = _unitOfWorkProvider.Provide();
         uow.GetCurrentSession().Save(user);

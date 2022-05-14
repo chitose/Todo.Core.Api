@@ -21,7 +21,6 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
             var now = DateTime.UtcNow;
             auditEntity.CreatedAt = now;
             auditEntity.ModifiedAt = now;
-            return true;
         }
 
         return false;
@@ -43,7 +42,6 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
         {
             var now = DateTime.UtcNow;
             auditEntity.ModifiedAt = now;
-            return true;
         }
 
         return false;

@@ -12,7 +12,7 @@ public abstract class BaseEntityMapping<T> : ClassMapping<T> where T : BaseEntit
         Id(x => x.Id, c =>
         {
             c.Column("id");
-            c.Generator(Generators.Increment);
+            c.Generator(Generators.Identity);
         });
         Version(x => x.Version, c =>
         {
@@ -21,12 +21,5 @@ public abstract class BaseEntityMapping<T> : ClassMapping<T> where T : BaseEntit
         });
         Property(x => x.CreatedAt, c => { c.Column("created_at"); });
         Property(x => x.ModifiedAt, c => { c.Column("modified_at"); });
-    }
-}
-
-public class BaseEntityMapping : BaseEntityMapping<BaseEntity>
-{
-    protected BaseEntityMapping()
-    {
     }
 }

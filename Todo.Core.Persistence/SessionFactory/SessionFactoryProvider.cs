@@ -31,10 +31,10 @@ public class SessionFactoryProvider
             mcfg.ConfigureMapping(mapping);
         }
 
-        config.EventListeners.PreInsertEventListeners = new IPreInsertEventListener[] { new AuditEntityListener() };
-        config.EventListeners.PreUpdateEventListeners = new IPreUpdateEventListener[] { new AuditEntityListener() };
+        config.SetListener(ListenerType.PreInsert, new AuditEntityListener());
+        config.SetListener(ListenerType.PreUpdate, new AuditEntityListener());
         config.AddDeserializedMapping(mapping.CompileMappingForAllExplicitlyAddedEntities(), null);
-        config.Interceptor = _loggingInterceptor;
+        config.SetInterceptor(_loggingInterceptor);
         new NHibernate.Tool.hbm2ddl.SchemaUpdate(config).Execute(true, true);
         return config.BuildSessionFactory();
     }

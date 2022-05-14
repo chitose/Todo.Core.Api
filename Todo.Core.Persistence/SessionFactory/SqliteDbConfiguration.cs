@@ -14,7 +14,6 @@ public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
     }
     public void Configure(Configuration config)
     {
-        SQLitePCL.Batteries_V2.Init();
         config.DataBaseIntegration(db =>
         {
             db.ConnectionString = _configProvider.GetConnectionString("todo");
