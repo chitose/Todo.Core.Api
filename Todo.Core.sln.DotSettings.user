@@ -8,5 +8,6 @@
       &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.RepositoryTests&lt;/TestId&gt;
     &lt;/TestAncestor&gt;
     &lt;ProjectFile&gt;5E89AB88-548C-4013-A877-581A1CE95793/f:UnitOfWorkTests.cs&lt;/ProjectFile&gt;
+    &lt;ProjectFile&gt;28B5AF41-1275-4831-9FE0-2D331DA3C6CA/f:UserRepository.cs&lt;/ProjectFile&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

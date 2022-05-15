@@ -1,4 +1,5 @@
 using NHibernate.Event;
+using Todo.Core.Common.Context;
 using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Persistence.SessionFactory;
@@ -21,6 +22,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
             var now = DateTime.UtcNow;
             auditEntity.CreatedAt = now;
             auditEntity.ModifiedAt = now;
+            auditEntity.Author = auditEntity.Editor = UserContext.UserName ?? "System";
         }
 
         return false;
@@ -42,6 +44,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
         {
             var now = DateTime.UtcNow;
             auditEntity.ModifiedAt = now;
+            auditEntity.Editor = UserContext.UserName ?? "System";
         }
 
         return false;
