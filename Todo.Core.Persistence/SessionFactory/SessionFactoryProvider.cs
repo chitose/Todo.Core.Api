@@ -10,21 +10,25 @@ namespace Todo.Core.Persistence.SessionFactory;
 public class SessionFactoryProvider
 {
     private readonly IConfigProvider _configProvider;
-    private readonly INhibernateDatabaseConfiguration _dbConfig;
+    private readonly IEnumerable<INhibernateDatabaseConfiguration> _dbConfigs;
     private readonly IEnumerable<IModelMapperConfiguration> _modelMapperConfigurations;
     private readonly LoggingInterceptor _loggingInterceptor;
-    public SessionFactoryProvider(IConfigProvider configProvider, INhibernateDatabaseConfiguration dbConfig,
+    public SessionFactoryProvider(IConfigProvider configProvider, IEnumerable<INhibernateDatabaseConfiguration> dbConfigs,
         IEnumerable<IModelMapperConfiguration> modelMapperConfigurations, LoggingInterceptor loggingInterceptor)
     {
         _configProvider = configProvider;
-        _dbConfig = dbConfig;
+        _dbConfigs = dbConfigs;
         _modelMapperConfigurations = modelMapperConfigurations;
         _loggingInterceptor = loggingInterceptor;
     }
     public ISessionFactory CreateFactory()
     {
         var config = new Configuration();
-        _dbConfig.Configure(config);
+        foreach (var dbCfg in _dbConfigs)
+        {
+            dbCfg.Configure(config);
+        }
+        
         var mapping = new ModelMapper();
         foreach (var mcfg in _modelMapperConfigurations)
         {

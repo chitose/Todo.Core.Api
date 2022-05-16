@@ -91,5 +91,18 @@ public class ProjectMapping : BaseEntityMapping<Project>
                 colm.Lazy(CollectionLazy.Lazy);
                 colm.Inverse(true);
             }, col => { col.ManyToMany(x => x.Column("user_id")); });
+            
+            Set(x => x.Labels, colm =>
+            {
+                colm.Table("project_label");
+                colm.Key(c =>
+                {
+                    c.Column("project_id");
+                    c.NotNullable(true);
+                });
+                colm.Cascade(Cascade.None);
+                colm.Lazy(CollectionLazy.Lazy);
+                colm.Inverse(true);
+            }, col => { col.ManyToMany(x => x.Column("label_id")); });
         }
     }

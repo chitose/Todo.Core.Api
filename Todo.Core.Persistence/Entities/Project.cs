@@ -23,4 +23,6 @@ public class Project : BaseEntity
     public virtual ICollection<ProjectComment> Comments { get; protected set; } = new List<ProjectComment>();
 
     public virtual ICollection<User> Users { get; protected set; } = new List<User>();
+
+    public virtual ICollection<Label> Labels { get; protected set; } = new List<Label>();
 }

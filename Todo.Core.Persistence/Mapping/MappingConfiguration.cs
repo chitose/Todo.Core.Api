@@ -11,5 +11,6 @@ public class MappingConfiguration : IModelMapperConfiguration
         mapper.AddMapping<ProjectCommentMapping>();
         mapper.AddMapping<ProjectMapping>();
         mapper.AddMapping<UserMapping>();
+        mapper.AddMapping<LabelMapping>();
     }
 }

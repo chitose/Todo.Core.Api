@@ -2,8 +2,9 @@ using NHibernate.Cfg;
 using NHibernate.Dialect;
 using NHibernate.Driver;
 using Todo.Core.Common.Configuration;
+using Todo.Core.Persistence.SessionFactory;
 
-namespace Todo.Core.Persistence.SessionFactory;
+namespace Todo.Core.Persistence.DatabaseConfiguration;
 
 public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
 {

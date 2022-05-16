@@ -10,18 +10,16 @@ using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Persistence.UnitTest;
 
-public class UserRepositoryTests : BaseTest
+public class UserRepositoryTests : BaseRepoTest
 {
-    private IUnitOfWorkProvider _unitOfWorkProvider;
     private IUserRepository _userRepository;
     
     [SetUp]
     public new void Setup()
     {
-        _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();
         _userRepository = _scope.Resolve<IUserRepository>();
-        UserContext.UserName = "Test";
     }
+    
     [Test]
     [Order(1)]
     public async Task Add_User_Should_Work_Correctly()
