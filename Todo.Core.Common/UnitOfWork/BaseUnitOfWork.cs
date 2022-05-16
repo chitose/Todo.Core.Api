@@ -3,20 +3,37 @@ using ISession = NHibernate.ISession;
 
 namespace Todo.Core.Common.UnitOfWork;
 
-public abstract class BaseUnitOfWork<TUnit,TSession> : IBaseUnitOfWork<TSession> where TUnit : IBaseUnitOfWork<TSession> where TSession : IDisposable
+public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession>
+    where TUnit : class, IBaseUnitOfWork<TSession> where TSession : IDisposable
 {
     protected Lazy<TSession> _lazySession;
 
-    private static IBaseUnitOfWork<TSession> _current;
+    private class UowWrapper<TUOW>
+    {
+        public UowWrapper(TUOW uow)
+        {
+            UnitOfWork = uow;
+        }
 
-    private static IBaseUnitOfWork<TSession> _parent;
+        public TUOW UnitOfWork { get; set; }
+    }
 
-    public static IBaseUnitOfWork<TSession> Current => _current;
+    private static AsyncLocal<UowWrapper<TUnit?>> _current =
+        new AsyncLocal<UowWrapper<TUnit?>>
+        {
+            Value = null
+        };
+
+    private IBaseUnitOfWork<TSession>? _parent;
+
+    public IBaseUnitOfWork<TSession>? Parent => _parent;
+
+    public static IBaseUnitOfWork<TSession>? Current => _current.Value?.UnitOfWork;
 
     protected BaseUnitOfWork()
     {
-        _parent = _current;
-        _current = this;
+        _parent = _current.Value?.UnitOfWork;
+        _current.Value = new UowWrapper<TUnit?>(this as TUnit);
     }
 
     public TSession GetCurrentSession()
@@ -28,9 +45,14 @@ public abstract class BaseUnitOfWork<TUnit,TSession> : IBaseUnitOfWork<TSession>
     {
         // to be override by sub classes
     }
+
     public void Dispose()
     {
-        _current = _parent;
+        if (_current.Value != null)
+        {
+            _current.Value.UnitOfWork = _parent as TUnit;
+        }
+        
         GetCurrentSession()?.Dispose();
         OnDispose();
     }
