@@ -17,10 +17,48 @@ public class LabelRepositoryTests : BaseRepoTest
     }
 
     [Test]
-    public async Task Add_Label_Should_Work()
+    public async Task Add_label_should_work()
     {
-        using var uow = _unitOfWorkProvider.Provide();
-        await _labelRepository.Add(new Label{Title = "test"});
-        await uow.CommitAsync();
+        var lbl = new Label { Title = "test" };
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _labelRepository.Add(lbl));
+        Assert.IsTrue(lbl.Id > 0);
+    }
+
+    [Test]
+    public async Task Update_label_should_work()
+    {
+        var lbl = new Label { Title = "test title" };
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _labelRepository.Add(lbl));
+
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+        {
+            lbl.Title = "update title";
+            return _labelRepository.Save(lbl);
+        });
+
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var updateLbl = await _labelRepository.GetByKey(lbl.Id);
+            Assert.AreEqual(updateLbl.Title, lbl.Title);
+        });
+    }
+
+    [Test]
+    public async Task Delete_label_should_work()
+    {
+        var lbl = new Label { Title = "dummy label" };
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _labelRepository.Add(lbl));
+        Assert.IsTrue(lbl.Id > 0);
+
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            await _labelRepository.Delete(lbl);
+        });
+
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var flbl = await _labelRepository.GetByKey(lbl.Id);
+            Assert.IsNull(flbl);
+        });
     }
 }
