@@ -8,13 +8,16 @@ namespace Todo.Core.Persistence.DatabaseConfiguration;
 
 public class AuditConfiguration : INhibernateDatabaseConfiguration
 {
+    public bool AfterMapping => true;
+
     public void Configure(Configuration config)
     {
         var enversConf = new FluentConfiguration();
         
-        enversConf.Audit<Project>();
+        enversConf.Audit<Project>().Exclude(p => p.Comments)
+            .Exclude(p => p.Users);
         enversConf.Audit<Label>();
-        
+
         config.IntegrateWithEnvers(enversConf);
     }
 }

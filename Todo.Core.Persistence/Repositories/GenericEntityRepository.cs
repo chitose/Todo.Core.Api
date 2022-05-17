@@ -7,7 +7,7 @@ namespace Todo.Core.Persistence.Repositories;
 
 public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseEntity, new()
 {
-    protected ISession Session => UnitOfWork.Current.GetCurrentSession();
+    protected ISession Session => UnitOfWork.Current?.GetCurrentSession();
 
     public IQueryable<TEntity> GetAll()
     {
@@ -20,14 +20,16 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
             .Where(t => t.Id == key).SingleOrDefaultAsync(cancellationToken);
     }
 
-    public Task Add(TEntity entity, CancellationToken cancellationToken = default)
+    public async Task<TEntity> Add(TEntity entity, CancellationToken cancellationToken = default)
     {
-        return Session.SaveAsync(entity, cancellationToken);
+        await Session.SaveAsync(entity, cancellationToken);
+        return entity;
     }
 
-    public Task Save(TEntity entity, CancellationToken cancellationToken = default)
+    public async Task<TEntity> Save(TEntity entity, CancellationToken cancellationToken = default)
     {
-        return Session.SaveOrUpdateAsync(entity, cancellationToken);
+        await Session.SaveOrUpdateAsync(entity, cancellationToken);
+        return entity;
     }
 
     public Task Delete(TEntity entity, CancellationToken cancellationToken = default)

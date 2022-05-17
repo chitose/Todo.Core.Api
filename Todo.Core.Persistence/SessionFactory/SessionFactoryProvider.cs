@@ -24,7 +24,8 @@ public class SessionFactoryProvider
     public ISessionFactory CreateFactory()
     {
         var config = new Configuration();
-        foreach (var dbCfg in _dbConfigs)
+        var beforeMappingCfgs = _dbConfigs.Where(c => !c.AfterMapping);
+        foreach (var dbCfg in beforeMappingCfgs)
         {
             dbCfg.Configure(config);
         }
@@ -39,6 +40,12 @@ public class SessionFactoryProvider
         config.SetListener(ListenerType.PreUpdate, new AuditEntityListener());
         config.AddDeserializedMapping(mapping.CompileMappingForAllExplicitlyAddedEntities(), null);
         config.SetInterceptor(_loggingInterceptor);
+
+        var afterMappingCfs = _dbConfigs.Where(c => c.AfterMapping);
+        foreach (var cfg in afterMappingCfs)
+        {
+            cfg.Configure(config);
+        }
         new NHibernate.Tool.hbm2ddl.SchemaUpdate(config).Execute(true, true);
         return config.BuildSessionFactory();
     }

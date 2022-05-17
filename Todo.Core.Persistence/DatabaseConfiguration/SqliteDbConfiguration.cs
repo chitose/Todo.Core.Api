@@ -9,10 +9,15 @@ namespace Todo.Core.Persistence.DatabaseConfiguration;
 public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
 {
     private readonly IConfigProvider _configProvider;
+    
+    
     public SqliteDbConfiguration(IConfigProvider configProvider)
     {
         _configProvider = configProvider;
     }
+
+    public bool AfterMapping => false;
+
     public void Configure(Configuration config)
     {
         config.DataBaseIntegration(db =>

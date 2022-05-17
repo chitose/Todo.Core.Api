@@ -8,9 +8,9 @@ public interface IGenericRepository<TEntity> where TEntity : BaseEntity, new()
 
     Task<TEntity> GetByKey(int key, CancellationToken cancellationToken = default);
 
-    Task Add(TEntity entity, CancellationToken cancellationToken = default);
+    Task<TEntity> Add(TEntity entity, CancellationToken cancellationToken = default);
 
-    Task Save(TEntity entity, CancellationToken cancellationToken = default);
+    Task<TEntity> Save(TEntity entity, CancellationToken cancellationToken = default);
 
     Task Delete(TEntity entity, CancellationToken cancellationToken = default);
 
