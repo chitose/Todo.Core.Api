@@ -19,4 +19,31 @@ public class UnitOfWorkProvider : IUnitOfWorkProvider
     {
         return new StatelessUnitOfWork(_sessionFactory);
     }
+
+    public async Task<T> PerformActionInUnitOfWork<T>(Func<Task<T>> actionResult)
+    {
+        await using var uow = Provide();
+        var result = await actionResult();
+        await uow.CommitAsync();
+        return result;
+    }
+
+    public async Task PerformActionInUnitOfWork(Func<Task> actionResult)
+    {
+        await using var uow = Provide();
+        await actionResult();
+        await uow.CommitAsync();
+    }
+
+    public async Task<T> PerformActionInUnitOfWorkStateless<T>(Func<Task<T>> actionResult)
+    {
+        await using var uow = ProvideStateless();
+        return await actionResult();
+    }
+
+    public async Task PerformActionInUnitOfWorkStateless(Func<Task> actionResult)
+    {
+        await using var uow = ProvideStateless();
+        await actionResult();
+    }
 }
