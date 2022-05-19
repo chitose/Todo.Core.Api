@@ -7,7 +7,7 @@ namespace Todo.Core.Persistence.UnitTest;
 public class SessionFactoryTests : BaseTest
 {
     [Test]
-    public void Mapping_Should_Work_Correctly()
+    public void Mapping_should_work_correctly()
     {
         Assert.DoesNotThrow(() =>
         {

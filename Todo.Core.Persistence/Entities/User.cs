@@ -9,5 +9,7 @@ public class User : BaseEntity
     public virtual string Email { get; set; }
     public virtual string UserId { get; set; }
 
-    public virtual ICollection<Project> Projects { get; protected set; } = new List<Project>();
+    public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+
+    public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
 }

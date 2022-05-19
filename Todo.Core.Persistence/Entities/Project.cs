@@ -20,9 +20,13 @@ public class Project : BaseEntity
 
     public virtual bool Archived { get; set; }
 
-    public virtual ICollection<ProjectComment> Comments { get; protected set; } = new List<ProjectComment>();
+    public virtual ICollection<ProjectComment> Comments { get; set; } = new List<ProjectComment>();
 
-    public virtual ICollection<User> Users { get; protected set; } = new List<User>();
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
 
-    public virtual ICollection<Label> Labels { get; protected set; } = new List<Label>();
+    public virtual ICollection<Label> Labels { get; set; } = new List<Label>();
+
+    public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
+
+    public virtual ICollection<ProjectSection> Sections { get; set; } = new List<ProjectSection>();
 }

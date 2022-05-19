@@ -13,10 +13,15 @@ public class AuditConfiguration : INhibernateDatabaseConfiguration
     public void Configure(Configuration config)
     {
         var enversConf = new FluentConfiguration();
-        
-        enversConf.Audit<Project>().Exclude(p => p.Comments)
-            .Exclude(p => p.Users);
+        enversConf.Audit<Project>()
+            .Exclude(p => p.Comments)
+            .Exclude(p => p.Users)
+            .Exclude(p => p.Sections);
         enversConf.Audit<Label>();
+        enversConf.Audit<TodoTask>()
+            .Exclude(x => x.Section)
+            .Exclude(x => x.ParentTask)
+            .Exclude(x => x.AssignedTo);
 
         config.IntegrateWithEnvers(enversConf);
     }

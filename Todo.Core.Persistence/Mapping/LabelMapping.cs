@@ -40,5 +40,18 @@ public class LabelMapping : BaseEntityMapping<Label>
             colm.Lazy(CollectionLazy.Lazy);
             colm.Inverse(true);
         }, col => { col.ManyToMany(x => x.Column("project_id")); });
+        
+        Set(x => x.Tasks, colm =>
+        {
+            colm.Table("task_label");
+            colm.Key(c =>
+            {
+                c.Column("label_id");
+                c.NotNullable(true);
+            });
+            colm.Cascade(Cascade.None);
+            colm.Lazy(CollectionLazy.Lazy);
+            colm.Inverse(true);
+        }, col => { col.ManyToMany(x => x.Column("task_id")); });
     }
 }

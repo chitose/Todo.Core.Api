@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo.Core.Persistence.UnitT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo.Core.Common.UnitTests", "Todo.Core.Common.UnitTests\Todo.Core.Common.UnitTests.csproj", "{5E89AB88-548C-4013-A877-581A1CE95793}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo.Core.Domain", "Todo.Core.Domain\Todo.Core.Domain.csproj", "{9550BE42-AC15-4C83-8997-92E5488C8FAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{5E89AB88-548C-4013-A877-581A1CE95793}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E89AB88-548C-4013-A877-581A1CE95793}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E89AB88-548C-4013-A877-581A1CE95793}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9550BE42-AC15-4C83-8997-92E5488C8FAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9550BE42-AC15-4C83-8997-92E5488C8FAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9550BE42-AC15-4C83-8997-92E5488C8FAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9550BE42-AC15-4C83-8997-92E5488C8FAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{28B5AF41-1275-4831-9FE0-2D331DA3C6CA} = {837664BE-E1E5-4E15-8391-F48EE42D78CA}

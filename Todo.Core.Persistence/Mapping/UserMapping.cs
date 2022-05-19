@@ -52,5 +52,14 @@ public class UserMapping : BaseEntityMapping<User>
             opt.Lazy(CollectionLazy.Lazy);
             opt.Inverse(true);
         }, opt => { opt.ManyToMany(x => x.Column("project_id")); });
+
+        Set(x => x.Tasks, m =>
+        {
+            m.Cascade(Cascade.Persist);
+            m.Lazy(CollectionLazy.Lazy);
+            m.Inverse(true);
+            m.Fetch(CollectionFetchMode.Join);
+            m.Key(x=>x.Column("assigned"));
+        }, r => r.OneToMany());
     }
 }

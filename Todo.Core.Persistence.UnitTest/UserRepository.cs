@@ -22,22 +22,20 @@ public class UserRepositoryTests : BaseRepoTest
     
     [Test]
     [Order(1)]
-    public async Task Add_User_Should_Work_Correctly()
+    public async Task Add_user_should_work_correctly()
     {
         var user = new User
         {
             FirstName = "Test User",
             UserId = "dummyUser" + Guid.NewGuid()
         };
-        await using var uow = _unitOfWorkProvider.Provide();
-        await _userRepository.Add(user);
-        await uow.CommitAsync();
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _userRepository.Add(user));
         Assert.IsTrue(user.Id > 0);
     }
 
     [Test]
     [Order(2)]
-    public async Task Get_All_Users_Should_Work_Correctly()
+    public async Task Get_all_users_should_work_correctly()
     {
         await using var uow = _unitOfWorkProvider.Provide();
         var user = await _userRepository.GetAll().ToListAsync();
@@ -46,28 +44,30 @@ public class UserRepositoryTests : BaseRepoTest
 
     [Test]
     [Order(3)]
-    public async Task Save_User_Should_Work_Correctly()
+    public async Task Save_user_should_work_correctly()
     {
-        await using var uow = _unitOfWorkProvider.Provide();
-        var user = await _userRepository.GetAll().FirstOrDefaultAsync();
-        user.FirstName = "New user name" + Guid.NewGuid();
-        await _userRepository.Save(user);
-        await uow.CommitAsync();
+        var user = await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var user = await _userRepository.GetAll().FirstOrDefaultAsync();
+            user.FirstName = "New user name" + Guid.NewGuid();
+            return await _userRepository.Save(user);
+        });
 
-        await using var uow1 = _unitOfWorkProvider.Provide();
-        var updatedUser = await _userRepository.GetByKey(user.Id);
-        
+        var updatedUser = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _userRepository.GetByKey(user.Id));
+
         Assert.AreEqual(updatedUser.FirstName, user.FirstName);
     }
 
     [Test]
     [Order(4)]
-    public async Task Delete_User_Should_Work_Correctly()
+    public async Task Delete_user_should_work_correctly()
     {
-        await using var uow = _unitOfWorkProvider.Provide();
-        var user = await _userRepository.GetAll().FirstOrDefaultAsync();
-        await _userRepository.Delete(user);
-        await uow.CommitAsync();
+        var user = await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var user = await _userRepository.GetAll().FirstOrDefaultAsync();
+            await _userRepository.Delete(user);
+            return user;
+        });
 
         await using var uow1 = _unitOfWorkProvider.Provide();
         var u = await _userRepository.GetByKey(user.Id);
