@@ -9,8 +9,8 @@ namespace Todo.Core.Persistence.DatabaseConfiguration;
 public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
 {
     private readonly IConfigProvider _configProvider;
-    
-    
+
+
     public SqliteDbConfiguration(IConfigProvider configProvider)
     {
         _configProvider = configProvider;
@@ -25,6 +25,7 @@ public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
             db.ConnectionString = _configProvider.GetConnectionString("todo");
             db.Dialect<SQLiteDialect>();
             db.Driver<SQLite20Driver>();
+            db.LogSqlInConsole = true;
         });
     }
 }

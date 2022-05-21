@@ -6,7 +6,7 @@ using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Persistence.UnitTest;
 
-public class LabelRepositoryTests : BaseRepoTest
+public class LabelRepositoryTests : BaseTest
 {
     private ILabelRepository _labelRepository;
 
@@ -50,10 +50,7 @@ public class LabelRepositoryTests : BaseRepoTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _labelRepository.Add(lbl));
         Assert.IsTrue(lbl.Id > 0);
 
-        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
-        {
-            await _labelRepository.Delete(lbl);
-        });
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () => { await _labelRepository.Delete(lbl); });
 
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {

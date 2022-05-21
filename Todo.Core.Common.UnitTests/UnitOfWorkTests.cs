@@ -2,7 +2,6 @@ using NHibernate;
 using NSubstitute;
 using NUnit.Framework;
 using Todo.Core.Common.UnitOfWork;
-using ISession = NHibernate.ISession;
 
 namespace Todo.Core.Common.UnitTests;
 
@@ -16,7 +15,7 @@ public class UnitOfWorkTests
     [Test]
     public void Nested_Unit_Of_Work_Should_Work_Correctly()
     {
-        var sessionFactoryMock = NSubstitute.Substitute.For<ISessionFactory>();
+        var sessionFactoryMock = Substitute.For<ISessionFactory>();
         sessionFactoryMock.OpenSession().Returns(Substitute.For<ISession>());
         var uowProvider = new UnitOfWorkProvider(sessionFactoryMock);
         using (var uow = uowProvider.Provide())
@@ -26,6 +25,7 @@ public class UnitOfWorkTests
             {
                 Assert.AreEqual(childOow, UnitOfWork.UnitOfWork.Current);
             }
+
             Assert.AreEqual(uow, UnitOfWork.UnitOfWork.Current);
         }
     }

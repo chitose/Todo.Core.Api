@@ -2,7 +2,7 @@
 
 namespace Todo.Core.Persistence.Repositories;
 
-public interface IGenericReadonlyRepository<TEntity> where TEntity: BaseEntity
+public interface IGenericReadonlyRepository<TEntity> where TEntity : BaseEntity
 {
     IQueryable<TEntity> Query();
 }

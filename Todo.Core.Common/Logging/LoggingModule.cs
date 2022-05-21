@@ -7,6 +7,7 @@ public class LoggingModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
-        builder.RegisterType<SerilogStartupConfigurationConfiguration>().As<IStartupConfiguration>().InstancePerDependency();
+        builder.RegisterType<SerilogStartupConfigurationConfiguration>().As<IStartupConfiguration>()
+            .InstancePerDependency();
     }
 }

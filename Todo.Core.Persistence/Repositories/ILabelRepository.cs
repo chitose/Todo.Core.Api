@@ -4,5 +4,4 @@ namespace Todo.Core.Persistence.Repositories;
 
 public interface ILabelRepository : IGenericRepository<Label>
 {
-    
 }

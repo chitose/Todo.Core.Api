@@ -7,17 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Autofac" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.5" />
-      <PackageReference Include="NHibernate" Version="5.3.12" />
-      <PackageReference Include="NHibernate.Envers" Version="5.3.2" />
-      <PackageReference Include="NHibernate.Extensions.Sqlite" Version="6.0.8" />
-      <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.0.7" />
-      <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
+        <PackageReference Include="Autofac" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.5"/>
+        <PackageReference Include="NHibernate" Version="5.3.12"/>
+        <PackageReference Include="NHibernate.Envers" Version="5.3.2"/>
+        <PackageReference Include="NHibernate.Extensions.Sqlite" Version="6.0.8"/>
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.0.7"/>
+        <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj" />
+        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj"/>
     </ItemGroup>
 
 </Project>

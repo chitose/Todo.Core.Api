@@ -2,5 +2,5 @@
 
 public class TaskComment : BaseComment
 {
-    public virtual TodoTask Task { get; protected set; }
+    public virtual TodoTask Task { get; set; }
 }

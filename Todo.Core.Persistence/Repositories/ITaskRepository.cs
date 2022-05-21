@@ -2,6 +2,6 @@
 
 namespace Todo.Core.Persistence.Repositories;
 
-public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepository
+public interface ITaskRepository : IGenericRepository<TodoTask>
 {
 }

@@ -8,10 +8,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
 {
     public Task<bool> OnPreInsertAsync(PreInsertEvent @event, CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return Task.FromResult(false);
-        }
+        if (cancellationToken.IsCancellationRequested) return Task.FromResult(false);
         return Task.FromResult(OnPreInsert(@event));
     }
 
@@ -30,10 +27,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
 
     public Task<bool> OnPreUpdateAsync(PreUpdateEvent @event, CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return Task.FromResult(false);
-        }
+        if (cancellationToken.IsCancellationRequested) return Task.FromResult(false);
 
         return Task.FromResult(OnPreUpdate(@event));
     }

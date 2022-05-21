@@ -46,20 +46,36 @@ public class UserMapping : BaseEntityMapping<User>
             opt.Key(x =>
             {
                 x.Column("user_id");
+                x.ForeignKey("project_user_fk");
                 x.NotNullable(true);
             });
-            opt.Cascade(Cascade.DeleteOrphans | Cascade.All);
+            opt.Cascade(Cascade.All);
             opt.Lazy(CollectionLazy.Lazy);
             opt.Inverse(true);
         }, opt => { opt.ManyToMany(x => x.Column("project_id")); });
 
         Set(x => x.Tasks, m =>
         {
-            m.Cascade(Cascade.Persist);
+            m.Cascade(Cascade.None);
             m.Lazy(CollectionLazy.Lazy);
             m.Inverse(true);
-            m.Fetch(CollectionFetchMode.Join);
-            m.Key(x=>x.Column("assigned"));
+            m.Key(c =>
+            {
+                c.Column("assigned");
+                c.ForeignKey("task_user_fk");
+            });
+        }, r => r.OneToMany());
+
+        Set(x => x.Labels, m =>
+        {
+            m.Key(c =>
+            {
+                c.Column("owner_id");
+                c.ForeignKey("label_user_fk");
+            });
+            m.Cascade(Cascade.All);
+            m.Lazy(CollectionLazy.Lazy);
+            m.Inverse(true);
         }, r => r.OneToMany());
         
         Set(x=>x.Labels, m =>

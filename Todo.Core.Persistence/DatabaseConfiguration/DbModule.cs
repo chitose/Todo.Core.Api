@@ -3,7 +3,7 @@ using Todo.Core.Persistence.SessionFactory;
 
 namespace Todo.Core.Persistence.DatabaseConfiguration;
 
-public class DbModule : Autofac.Module
+public class DbModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {

@@ -22,20 +22,18 @@ public class LabelMapping : BaseEntityMapping<Label>
             c.Column("shared");
             c.Index(idx_name);
         });
-        
-        Property(x=>x.Order, c =>
-        {
-            c.Column("[order]");
-        });
-        
+
+        Property(x => x.Order, c => { c.Column("[order]"); });
+
         ManyToOne(x => x.Owner, m =>
         {
             m.Column("owner_id");
+            m.ForeignKey("owner_fk");
             m.Lazy(LazyRelation.Proxy);
             m.NotNullable(true);
-            m.Cascade(Cascade.All);
+            m.Cascade(Cascade.None);
         });
-        
+
         Set(x => x.Projects, colm =>
         {
             colm.Table("project_label");
@@ -48,7 +46,7 @@ public class LabelMapping : BaseEntityMapping<Label>
             colm.Lazy(CollectionLazy.Lazy);
             colm.Inverse(true);
         }, col => { col.ManyToMany(x => x.Column("project_id")); });
-        
+
         Set(x => x.Tasks, colm =>
         {
             colm.Table("task_label");

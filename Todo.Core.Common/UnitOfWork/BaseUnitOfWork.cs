@@ -1,12 +1,49 @@
-using NHibernate;
-using ISession = NHibernate.ISession;
-
 namespace Todo.Core.Common.UnitOfWork;
 
 public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession>
     where TUnit : class, IBaseUnitOfWork<TSession> where TSession : IDisposable
 {
+    private static readonly AsyncLocal<UowWrapper<TUnit?>> _current =
+        new()
+        {
+            Value = null
+        };
+
     protected Lazy<TSession> _lazySession;
+
+    protected BaseUnitOfWork()
+    {
+        Parent = _current.Value?.UnitOfWork;
+        _current.Value = new UowWrapper<TUnit?>(this as TUnit);
+    }
+
+    public static IBaseUnitOfWork<TSession>? Current => _current.Value?.UnitOfWork;
+
+    public IBaseUnitOfWork<TSession>? Parent { get; }
+
+    public TSession GetCurrentSession()
+    {
+        return _lazySession.Value;
+    }
+
+    public void Dispose()
+    {
+        if (_current.Value != null) _current.Value.UnitOfWork = Parent as TUnit;
+
+        GetCurrentSession()?.Dispose();
+        OnDispose();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return new ValueTask(Task.CompletedTask);
+    }
+
+    protected virtual void OnDispose()
+    {
+        // to be override by sub classes
+    }
 
     private class UowWrapper<TUOW>
     {
@@ -16,50 +53,5 @@ public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession
         }
 
         public TUOW UnitOfWork { get; set; }
-    }
-
-    private static AsyncLocal<UowWrapper<TUnit?>> _current =
-        new AsyncLocal<UowWrapper<TUnit?>>
-        {
-            Value = null
-        };
-
-    private IBaseUnitOfWork<TSession>? _parent;
-
-    public IBaseUnitOfWork<TSession>? Parent => _parent;
-
-    public static IBaseUnitOfWork<TSession>? Current => _current.Value?.UnitOfWork;
-
-    protected BaseUnitOfWork()
-    {
-        _parent = _current.Value?.UnitOfWork;
-        _current.Value = new UowWrapper<TUnit?>(this as TUnit);
-    }
-
-    public TSession GetCurrentSession()
-    {
-        return _lazySession.Value;
-    }
-
-    protected virtual void OnDispose()
-    {
-        // to be override by sub classes
-    }
-
-    public void Dispose()
-    {
-        if (_current.Value != null)
-        {
-            _current.Value.UnitOfWork = _parent as TUnit;
-        }
-        
-        GetCurrentSession()?.Dispose();
-        OnDispose();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        Dispose();
-        return new ValueTask(Task.CompletedTask);
     }
 }

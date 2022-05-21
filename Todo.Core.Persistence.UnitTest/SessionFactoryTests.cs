@@ -12,7 +12,7 @@ public class SessionFactoryTests : BaseTest
         Assert.DoesNotThrow(() =>
         {
             var session = _scope.Resolve<ISessionFactory>();
-            Assert.IsNotNull(session); 
+            Assert.IsNotNull(session);
         });
     }
 }

@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Todo.Core.Common.Autofac;
 using Todo.Core.Common.Context;
 using Todo.Core.Common.UnitOfWork;
+using Todo.Core.Common.UnitTests;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
@@ -12,19 +13,20 @@ namespace Todo.Core.Persistence.UnitTest;
 
 public abstract class BaseTest
 {
+    private readonly string? TestUserId = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
     protected ILifetimeScope _scope;
     protected IUnitOfWorkProvider _unitOfWorkProvider;
-    private readonly string TestUserId = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
-    
+
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
         var builder = WebApplication.CreateBuilder();
         var container = builder.UseAutofac(new[] { "Todo.Core.*.dll" });
+        UserContext.InitializeContext(new UnitTestContextHandler());
         _scope = container.BeginLifetimeScope();
         UserContext.UserName = "User for test";
         UserContext.UserId = TestUserId;
-        
+
         var userRepo = _scope.Resolve<IUserRepository>();
         _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();
         // create test user if not exist
@@ -40,13 +42,14 @@ public abstract class BaseTest
                 };
                 user = await userRepo.Add(user);
             }
+
             return user;
         });
     }
 
-    [TearDown]
-    public void Teardown()
+    [OneTimeTearDown]
+    public async Task OneTimeTearDown()
     {
-        _scope.Dispose();
+        await _scope.DisposeAsync();
     }
 }

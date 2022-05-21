@@ -1,15 +1,16 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d9ec9a3b_002D9ed3_002D43e8_002D9e18_002D9421ef2ee290/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Or&gt;
-    &lt;TestAncestor&gt;
-      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.SessionFactoryTests.Test1&lt;/TestId&gt;
-      &lt;TestId&gt;NUnit3x::5E89AB88-548C-4013-A877-581A1CE95793::net6.0::Todo.Core.Common.UnitTests.UnitOfWorkTests.Nested_Unit_Of_Work_Should_Work_Correctly&lt;/TestId&gt;
-      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.RepositoryTests.TestRepository_Add&lt;/TestId&gt;
-      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.RepositoryTests&lt;/TestId&gt;
-      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.SessionFactoryTests.Mapping_should_work_correctly&lt;/TestId&gt;
-      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.LabelRepositoryTests&lt;/TestId&gt;
-    &lt;/TestAncestor&gt;
-    &lt;ProjectFile&gt;5E89AB88-548C-4013-A877-581A1CE95793/f:UnitOfWorkTests.cs&lt;/ProjectFile&gt;
-    &lt;ProjectFile&gt;28B5AF41-1275-4831-9FE0-2D331DA3C6CA/f:UserRepository.cs&lt;/ProjectFile&gt;
-  &lt;/Or&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d9ec9a3b_002D9ed3_002D43e8_002D9e18_002D9421ef2ee290/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Or&gt;&#xD;
+    &lt;TestAncestor&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.SessionFactoryTests.Test1&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::5E89AB88-548C-4013-A877-581A1CE95793::net6.0::Todo.Core.Common.UnitTests.UnitOfWorkTests.Nested_Unit_Of_Work_Should_Work_Correctly&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.RepositoryTests.TestRepository_Add&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.RepositoryTests&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.SessionFactoryTests.Mapping_should_work_correctly&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::28B5AF41-1275-4831-9FE0-2D331DA3C6CA::net6.0::Todo.Core.Persistence.UnitTest.LabelRepositoryTests&lt;/TestId&gt;&#xD;
+    &lt;/TestAncestor&gt;&#xD;
+    &lt;ProjectFile&gt;5E89AB88-548C-4013-A877-581A1CE95793/f:UnitOfWorkTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;28B5AF41-1275-4831-9FE0-2D331DA3C6CA/f:UserRepository.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;Project Location="C:\Users\pnhnt\Documents\Todo.Core.Api\Todo.Core.Persistence.UnitTest" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;Todo.Core.Persistence.UnitTest&amp;gt;" /&gt;&#xD;
+  &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Todo.Core.Common.Context;
 
 namespace Todo.Core.Common.Autofac;
 
@@ -18,6 +19,9 @@ public static class WebApplicationBuilderExtensions
             }
         });
         builder.Host.UseServiceProviderFactory(factory);
-        return factory.CreateBuilder(builder.Services).Build();
+        var container = factory.CreateBuilder(builder.Services).Build();
+        var contextHandler = container.Resolve<IContextHandler>();
+        UserContext.InitializeContext(contextHandler);
+        return container;
     }
 }

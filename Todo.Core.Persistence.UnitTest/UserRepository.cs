@@ -3,23 +3,21 @@ using System.Threading.Tasks;
 using Autofac;
 using NHibernate.Linq;
 using NUnit.Framework;
-using Todo.Core.Common.Context;
-using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Persistence.UnitTest;
 
-public class UserRepositoryTests : BaseRepoTest
+public class UserRepositoryTests : BaseTest
 {
     private IUserRepository _userRepository;
-    
+
     [SetUp]
-    public new void Setup()
+    public void Setup()
     {
         _userRepository = _scope.Resolve<IUserRepository>();
     }
-    
+
     [Test]
     [Order(1)]
     public async Task Add_user_should_work_correctly()

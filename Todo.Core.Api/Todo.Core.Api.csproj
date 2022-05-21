@@ -8,28 +8,28 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj" />
+        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="Logs\**" />
+        <Compile Remove="Logs\**"/>
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Remove="Logs\**" />
+        <EmbeddedResource Remove="Logs\**"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Logs\**" />
+        <None Remove="Logs\**"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Remove="Logs\**" />
+        <Content Remove="Logs\**"/>
     </ItemGroup>
 
 </Project>

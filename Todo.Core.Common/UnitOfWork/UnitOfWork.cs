@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using NHibernate;
 using ISession = NHibernate.ISession;
 
@@ -7,6 +6,7 @@ namespace Todo.Core.Common.UnitOfWork;
 public class UnitOfWork : BaseUnitOfWork<IUnitOfWork, ISession>, IUnitOfWork
 {
     private ITransaction? _transaction;
+
     public UnitOfWork(ISessionFactory sessionFactory)
     {
         _lazySession = new Lazy<ISession>(() =>
