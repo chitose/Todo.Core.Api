@@ -19,5 +19,6 @@ public class RepositoryModule : Module
         builder.RegisterType<ProjectRepository>().As<IProjectRepository>();
         builder.RegisterType<LabelRepository>().As<ILabelRepository>();
         builder.RegisterType<TaskRepository>().As<ITaskRepository>();
+        builder.RegisterType<ProjectSectionRepository>().As<IProjectSectionRepository>();
     }
 }

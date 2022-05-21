@@ -24,7 +24,7 @@ public class UnitTestContextHandler : IContextHandler
     private static void ValueChangedHandler(AsyncLocalValueChangedArgs<Hashtable> args)
     {
         // work-around to restore previous value whe thread context changed to null
-        // due to task is executed in another thread != original thread before await
+        // due to thread context changes using await
         if (args.ThreadContextChanged && args.CurrentValue == null && args.PreviousValue != null)
             _local.Value = args.PreviousValue;
     }

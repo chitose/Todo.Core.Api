@@ -14,6 +14,7 @@ namespace Todo.Core.Persistence.UnitTest;
 public abstract class BaseTest
 {
     private readonly string? TestUserId = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
+    protected DataCreator _dataCreator;
     protected ILifetimeScope _scope;
     protected IUnitOfWorkProvider _unitOfWorkProvider;
 
@@ -26,6 +27,7 @@ public abstract class BaseTest
         _scope = container.BeginLifetimeScope();
         UserContext.UserName = "User for test";
         UserContext.UserId = TestUserId;
+        _dataCreator = new DataCreator(_scope);
 
         var userRepo = _scope.Resolve<IUserRepository>();
         _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();

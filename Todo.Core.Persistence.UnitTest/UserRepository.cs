@@ -8,15 +8,16 @@ using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Persistence.UnitTest;
 
+[TestFixture]
 public class UserRepositoryTests : BaseTest
 {
-    private IUserRepository _userRepository;
-
     [SetUp]
     public void Setup()
     {
         _userRepository = _scope.Resolve<IUserRepository>();
     }
+
+    private IUserRepository _userRepository;
 
     [Test]
     [Order(1)]

@@ -8,12 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0"/>
-        <PackageReference Include="NHibernate" Version="5.3.12"/>
-        <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2"/>
-        <PackageReference Include="NUnit" Version="3.13.2"/>
-        <PackageReference Include="NUnit3TestAdapter" Version="4.0.0"/>
-        <PackageReference Include="coverlet.collector" Version="3.1.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+        <PackageReference Include="NHibernate" Version="5.3.12" />
+        <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
+        <PackageReference Include="NUnit" Version="3.13.2" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
+        <PackageReference Include="coverlet.collector" Version="3.1.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,9 +23,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Todo.Core.Common.UnitTests\Todo.Core.Common.UnitTests.csproj"/>
-        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj"/>
-        <ProjectReference Include="..\Todo.Core.Persistence\Todo.Core.Persistence.csproj"/>
+        <ProjectReference Include="..\Todo.Core.Common.UnitTests\Todo.Core.Common.UnitTests.csproj" />
+        <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj" />
+        <ProjectReference Include="..\Todo.Core.Persistence\Todo.Core.Persistence.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,5 +33,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="del $(OutDir)\*.db" />
+    </Target>
 
 </Project>

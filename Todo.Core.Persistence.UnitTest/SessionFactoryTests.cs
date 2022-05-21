@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace Todo.Core.Persistence.UnitTest;
 
+[TestFixture]
 public class SessionFactoryTests : BaseTest
 {
     [Test]
