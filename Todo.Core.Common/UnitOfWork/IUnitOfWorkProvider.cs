@@ -6,6 +6,10 @@ public interface IUnitOfWorkProvider
 
     IStatelessUnitOfWork ProvideStateless();
 
+    T PerformActionInUnitOfWork<T>(Func<T> actionResult);
+    
+    void PerformActionInUnitOfWork(Action actionResult);
+    
     Task<T> PerformActionInUnitOfWork<T>(Func<Task<T>> actionResult);
     
     Task PerformActionInUnitOfWork(Func<Task> actionResult);

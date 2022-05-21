@@ -12,4 +12,6 @@ public class User : BaseEntity
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
     public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
+
+    public virtual ICollection<Label> Labels { get; set; } = new List<Label>();
 }

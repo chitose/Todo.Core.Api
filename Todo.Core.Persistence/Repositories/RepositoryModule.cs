@@ -12,9 +12,11 @@ public class RepositoryModule : Module
         builder.RegisterGeneric(typeof(GenericReadonlyRepository<>))
             .As(typeof(IGenericReadonlyRepository<>)).InstancePerLifetimeScope();
         
+        builder.RegisterGeneric(typeof(CommentRepository<>))
+            .As(typeof(ICommentRepository<>)).InstancePerLifetimeScope();
+        
         builder.RegisterType<UserRepository>().As<IUserRepository>();
         builder.RegisterType<ProjectRepository>().As<IProjectRepository>();
-        builder.RegisterType<ProjectCommentRepository>().As<IProjectCommentRepository>();
         builder.RegisterType<LabelRepository>().As<ILabelRepository>();
     }
 }

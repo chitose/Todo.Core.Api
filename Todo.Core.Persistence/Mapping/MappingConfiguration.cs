@@ -14,5 +14,6 @@ public class MappingConfiguration : IModelMapperConfiguration
         mapper.AddMapping<LabelMapping>();
         mapper.AddMapping<ProjectSectionMapping>();
         mapper.AddMapping<TaskMapping>();
+        mapper.AddMapping<TaskCommentMapping>();
     }
 }

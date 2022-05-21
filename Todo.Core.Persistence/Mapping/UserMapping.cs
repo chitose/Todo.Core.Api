@@ -61,5 +61,12 @@ public class UserMapping : BaseEntityMapping<User>
             m.Fetch(CollectionFetchMode.Join);
             m.Key(x=>x.Column("assigned"));
         }, r => r.OneToMany());
+        
+        Set(x=>x.Labels, m =>
+        {
+            m.Cascade(Cascade.All);
+            m.Lazy(CollectionLazy.Lazy);
+            m.Inverse(true);
+        }, r=>r.OneToMany());
     }
 }

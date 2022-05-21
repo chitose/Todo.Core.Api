@@ -49,6 +49,7 @@ public class TaskMapping : BaseEntityMapping<TodoTask>
         {
             m.Column("project_id");
             m.Cascade(Cascade.All);
+            m.NotNullable(true);
             m.Lazy(LazyRelation.Proxy);
         });
 

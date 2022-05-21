@@ -25,6 +25,7 @@ public class ProjectSectionMapping : BaseEntityMapping<ProjectSection>
             m.Cascade(Cascade.All);
             m.Lazy(LazyRelation.Proxy);
             m.Column("project_id");
+            m.NotNullable(true);
             m.Fetch(FetchKind.Join);
         });
         

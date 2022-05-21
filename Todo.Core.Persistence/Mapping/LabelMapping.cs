@@ -28,6 +28,14 @@ public class LabelMapping : BaseEntityMapping<Label>
             c.Column("[order]");
         });
         
+        ManyToOne(x => x.Owner, m =>
+        {
+            m.Column("owner_id");
+            m.Lazy(LazyRelation.Proxy);
+            m.NotNullable(true);
+            m.Cascade(Cascade.All);
+        });
+        
         Set(x => x.Projects, colm =>
         {
             colm.Table("project_label");

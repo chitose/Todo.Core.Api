@@ -14,30 +14,30 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
         return Session.Query<TEntity>();
     }
 
-    public Task<TEntity> GetByKey(int key, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity> GetByKey(int key, CancellationToken cancellationToken = default)
     {
         return Session.Query<TEntity>()
             .Where(t => t.Id == key).SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<TEntity> Add(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> Add(TEntity entity, CancellationToken cancellationToken = default)
     {
         await Session.SaveAsync(entity, cancellationToken);
         return entity;
     }
 
-    public async Task<TEntity> Save(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> Save(TEntity entity, CancellationToken cancellationToken = default)
     {
         await Session.SaveOrUpdateAsync(entity, cancellationToken);
         return entity;
     }
 
-    public Task Delete(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual Task Delete(TEntity entity, CancellationToken cancellationToken = default)
     {
         return Session.DeleteAsync(entity, cancellationToken);
     }
 
-    public async Task DeleteByKey(int key, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteByKey(int key, CancellationToken cancellationToken = default)
     {
         var entity = await GetByKey(key, cancellationToken);
         await Delete(entity, cancellationToken);

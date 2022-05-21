@@ -13,14 +13,14 @@ public class ProjectMapping : BaseEntityMapping<Project>
             const string indexName = "project_idx";
             Property(x => x.Archived, c =>
             {
-                c.Column("isArchived");
+                c.Column("archived");
                 c.Index(indexName);
             });
             Property(x => x.Default, opt =>
             {
                 opt.Column(c =>
                 {
-                    c.Name("isDefault");
+                    c.Name("[default]");
                     c.Default(false);
                 });
                 opt.NotNullable(false);

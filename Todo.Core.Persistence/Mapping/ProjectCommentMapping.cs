@@ -1,4 +1,5 @@
 using NHibernate.Engine;
+using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 using Todo.Core.Persistence.Entities;
 using Cascade = NHibernate.Mapping.ByCode.Cascade;
@@ -13,9 +14,10 @@ public class ProjectCommentMapping : SubclassMapping<ProjectComment>
 
         ManyToOne(x => x.Project, c =>
         {
-            c.Column("project_id");
+            c.Column("target_id");
             c.NotNullable(true);
-            c.Cascade(Cascade.Persist);
+            c.Cascade(Cascade.All);
+            c.Lazy(LazyRelation.Proxy);
         });
     }
 }

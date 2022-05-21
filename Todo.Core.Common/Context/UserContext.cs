@@ -4,25 +4,25 @@ namespace Todo.Core.Common.Context;
 
 public static class UserContext
 {
-    private static readonly AsyncLocal<Hashtable> CtxStorage = new AsyncLocal<Hashtable>();
+    private static readonly AsyncLocal<Hashtable> CtxStorage = new(ValueChangedHandler) {Value = new Hashtable()};
 
-    private static void SetData(string key, object data)
+    private static void ValueChangedHandler(AsyncLocalValueChangedArgs<Hashtable> evt)
     {
-        if (CtxStorage.Value == null)
+        if (evt.ThreadContextChanged && evt.PreviousValue != null && evt.CurrentValue == null)
         {
-            CtxStorage.Value = new Hashtable();
+            // restore the previous value
+            CtxStorage.Value = evt.PreviousValue;
         }
-
-        CtxStorage.Value[key] = data;
     }
-    public static int UserId { 
-        get => (int)CtxStorage.Value![nameof(UserId)]!;
-        set => SetData(nameof(UserId),value);
+
+    public static string UserId { 
+        get => (string)CtxStorage.Value![nameof(UserId)]!;
+        set => CtxStorage.Value![nameof(UserId)] = value;
     }
 
     public static string UserName
     {
         get => (string)CtxStorage.Value![nameof(UserName)]!;
-        set => SetData(nameof(UserName),value);
+        set => CtxStorage.Value![nameof(UserName)] = value;
     }
 }

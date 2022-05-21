@@ -10,8 +10,8 @@ public class LabelRepositoryTests : BaseRepoTest
 {
     private ILabelRepository _labelRepository;
 
-    [SetUp]
-    public new void Setup()
+    [OneTimeSetUp]
+    public new void OneTimeSetup()
     {
         _labelRepository = _scope.Resolve<ILabelRepository>();
     }
