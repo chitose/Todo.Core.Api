@@ -1,4 +1,4 @@
-using Todo.Core.Persistence.Enum;
+using Todo.Core.Domain.Enum;
 
 namespace Todo.Core.Persistence.Entities;
 
@@ -19,6 +19,8 @@ public class Project : BaseEntity
     public virtual bool Default { get; set; }
 
     public virtual bool Archived { get; set; }
+    
+    public virtual int Order { get; set; }
 
     public virtual ICollection<ProjectComment> Comments { get; set; } = new List<ProjectComment>();
 

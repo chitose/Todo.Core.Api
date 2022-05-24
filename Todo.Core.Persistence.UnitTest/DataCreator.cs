@@ -93,7 +93,7 @@ public class DataCreator
     }
 
     public Task<TodoTask> CreateTask(Project project, string testTask,
-        ProjectSection? section = null)
+        ProjectSection? section = null, TodoTask? parent = null)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
         {
@@ -101,7 +101,8 @@ public class DataCreator
             {
                 Title = testTask,
                 Section = section,
-                Project = project
+                Project = project,
+                ParentTask = parent
             };
             _createdEntities.Add(task);
             return _taskRepository.Add(task);

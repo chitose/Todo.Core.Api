@@ -67,6 +67,15 @@ public class ProjectMapping : BaseEntityMapping<Project>
             });
         });
 
+        Property(x => x.Order, c =>
+        {
+            c.Column(ci =>
+            {
+                ci.Name("[order]");
+                ci.Default(0);
+            });
+        });
+
         Set(x => x.Comments, c =>
         {
             c.Key(x =>

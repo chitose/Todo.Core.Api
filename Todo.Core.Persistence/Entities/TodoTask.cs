@@ -1,4 +1,4 @@
-﻿using Todo.Core.Persistence.Enum;
+﻿using Todo.Core.Domain.Enum;
 
 namespace Todo.Core.Persistence.Entities;
 

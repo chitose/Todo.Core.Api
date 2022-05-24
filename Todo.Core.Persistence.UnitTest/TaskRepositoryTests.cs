@@ -26,6 +26,9 @@ public class TaskRepositoryTests : BaseTest
         var sect = await _dataCreator.CreateProjectSection(prj, "Test sect");
         var taskInSect = await _dataCreator.CreateTask(prj, "Task in section", sect);
         Assert.IsTrue(taskInSect.Id > 0);
+
+        var childTask = await _dataCreator.CreateTask(prj, "child task", parent: task);
+        Assert.IsTrue(childTask.Id > 0);
     }
 
     [Test]

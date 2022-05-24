@@ -1,4 +1,4 @@
-﻿namespace Todo.Core.Persistence.Enum;
+﻿namespace Todo.Core.Domain.Enum;
 
 public enum TaskPriority
 {
