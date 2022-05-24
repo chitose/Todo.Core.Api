@@ -12,6 +12,7 @@ public class CommentRepositoryTests : BaseTest
     [OneTimeSetUp]
     public new async Task OneTimeSetup()
     {
+        RestoreExecutionContext();
         _projectCommentRepo = _scope.Resolve<ICommentRepository<ProjectComment>>();
         _taskCommentRepo = _scope.Resolve<ICommentRepository<TaskComment>>();
         _project = await _dataCreator.CreateProject("Test project");

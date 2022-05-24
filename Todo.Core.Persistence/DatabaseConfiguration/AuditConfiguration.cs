@@ -17,11 +17,13 @@ public class AuditConfiguration : INhibernateDatabaseConfiguration
             .Exclude(p => p.Comments)
             .Exclude(p => p.Users)
             .Exclude(p => p.Sections);
-        enversConf.Audit<Label>();
+        enversConf.Audit<Label>()
+            .Exclude(x => x.Owner);
         enversConf.Audit<TodoTask>()
             .Exclude(x => x.Section)
             .Exclude(x => x.ParentTask)
-            .Exclude(x => x.AssignedTo);
+            .Exclude(x => x.AssignedTo)
+            .Exclude(x => x.Comments);
 
         config.IntegrateWithEnvers(enversConf);
     }

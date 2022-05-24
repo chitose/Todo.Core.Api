@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.AspNetCore.Builder;
@@ -17,13 +18,13 @@ public abstract class BaseTest
     protected DataCreator _dataCreator;
     protected ILifetimeScope _scope;
     protected IUnitOfWorkProvider _unitOfWorkProvider;
+    private ExecutionContext _executionCtx;
 
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
         var builder = WebApplication.CreateBuilder();
         var container = builder.UseAutofac(new[] { "Todo.Core.*.dll" });
-        UserContext.InitializeContext(new UnitTestContextHandler());
         _scope = container.BeginLifetimeScope();
         UserContext.UserName = "User for test";
         UserContext.UserId = TestUserId;
@@ -47,11 +48,30 @@ public abstract class BaseTest
 
             return user;
         });
+        
+        SaveExecutionContext();
     }
 
     [OneTimeTearDown]
     public async Task OneTimeTearDown()
     {
+        RestoreExecutionContext();
         await _scope.DisposeAsync();
+    }
+
+    [SetUp]
+    public void Setup()
+    {
+        RestoreExecutionContext();
+    }
+
+    protected void SaveExecutionContext()
+    {
+        _executionCtx = ExecutionContext.Capture();
+    }
+
+    protected void RestoreExecutionContext()
+    {
+        ExecutionContext.Restore(_executionCtx);
     }
 }

@@ -10,8 +10,6 @@ public class Label : BaseEntity
 
     public virtual User Owner { get; set; }
 
-    public virtual User Owner { get; set; }
-
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
     public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
