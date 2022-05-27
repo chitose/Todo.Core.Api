@@ -1,20 +1,18 @@
 using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Persistence.Mapping;
 
-public class UserMapping : BaseEntityMapping<User>
+public class UserMapping : JoinedSubclassMapping<User>
 {
     public UserMapping()
     {
+        Extends(typeof(NHibernate.AspNetCore.Identity.IdentityUser));
+        ExplicitDeclarationsHolder.AddAsRootEntity(typeof(NHibernate.AspNetCore.Identity.IdentityUser));
         Table("user");
         const string indexName = "user_idx";
-        Property(x => x.UserId, c =>
-        {
-            c.Column("user_id");
-            c.Unique(true);
-            c.NotNullable(true);
-        });
+        Key(k => k.Column("id"));
         Property(x => x.Photo, c => { c.Column("photo"); });
         Property(x => x.DisplayName, c =>
         {
@@ -32,11 +30,6 @@ public class UserMapping : BaseEntityMapping<User>
         {
             c.Column("last_name");
             c.Index(indexName);
-            c.Length(255);
-        });
-        Property(x => x.Email, c =>
-        {
-            c.Column("email");
             c.Length(255);
         });
 
