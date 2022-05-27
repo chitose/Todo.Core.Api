@@ -6,19 +6,18 @@ using NUnit.Framework;
 using Todo.Core.Common.Autofac;
 using Todo.Core.Common.Context;
 using Todo.Core.Common.UnitOfWork;
-using Todo.Core.Common.UnitTests;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTest;
+namespace Todo.Core.Persistence.UnitTests;
 
 public abstract class BaseTest
 {
     private readonly string? TestUserId = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
     protected DataCreator _dataCreator;
+    private ExecutionContext _executionCtx;
     protected ILifetimeScope _scope;
     protected IUnitOfWorkProvider _unitOfWorkProvider;
-    private ExecutionContext _executionCtx;
 
     [OneTimeSetUp]
     public async Task OneTimeSetup()
@@ -48,7 +47,7 @@ public abstract class BaseTest
 
             return user;
         });
-        
+
         SaveExecutionContext();
     }
 

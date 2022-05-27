@@ -3,7 +3,7 @@ using Autofac;
 using NUnit.Framework;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTest;
+namespace Todo.Core.Persistence.UnitTests;
 
 [TestFixture]
 public class ProjectSectionTests : BaseTest

@@ -1,6 +1,6 @@
 using NHibernate.Mapping.ByCode;
+using Todo.Core.Domain.Enum;
 using Todo.Core.Persistence.Entities;
-using Todo.Core.Persistence.Enum;
 
 namespace Todo.Core.Persistence.Mapping;
 

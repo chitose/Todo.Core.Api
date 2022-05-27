@@ -4,11 +4,15 @@ namespace Todo.Core.Service.Project;
 
 public interface IProjectService
 {
-    Task<Todo.Core.Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo);
+    Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo);
 
-    Task<Todo.Core.Persistence.Entities.Project> UpdateProject(ProjectUpdateInfo updateInfo);
+    Task<Core.Persistence.Entities.Project> GetProject(int id);
+    
+    Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo);
 
     Task DeleteProject(int id);
 
-    Task<IList<Todo.Core.Persistence.Entities.Project>> GetProjects(bool includeArchived = false);
+    Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false);
+
+    Task SwapProjectOrder(int source, int target);
 }

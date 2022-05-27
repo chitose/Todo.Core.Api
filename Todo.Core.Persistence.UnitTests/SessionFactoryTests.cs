@@ -2,7 +2,7 @@ using Autofac;
 using NHibernate;
 using NUnit.Framework;
 
-namespace Todo.Core.Persistence.UnitTest;
+namespace Todo.Core.Persistence.UnitTests;
 
 [TestFixture]
 public class SessionFactoryTests : BaseTest

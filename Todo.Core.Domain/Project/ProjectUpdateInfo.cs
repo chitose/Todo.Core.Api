@@ -4,11 +4,11 @@ namespace Todo.Core.Domain.Project;
 
 public class ProjectUpdateInfo
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     
     public int? Order { get; set; }
     
-    public ProjectView View { get; set; }
+    public ProjectView? View { get; set; }
 
     public string? GroupBy { get; set; }
     
