@@ -30,7 +30,7 @@ public class ProjectService : IProjectService
         if (creationInfo.AboveProject.HasValue && creationInfo.BelowProject.HasValue)
         {
             throw new TodoException(
-                $"Invalid project creation Info. Cannot add a project above and below other project at the same time.");
+                "Invalid project creation Info. Cannot add a project above and below other project at the same time.");
         }
 
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
@@ -62,7 +62,7 @@ public class ProjectService : IProjectService
             }
             else
             {
-                projectOrder = (await _projectRepository.GetAll().MaxAsync(x => x.Order)) + 1;
+                projectOrder = await _projectRepository.GetAll().MaxAsync(x => x.Order) + 1;
             }
 
             var project = new Persistence.Entities.Project
@@ -111,10 +111,9 @@ public class ProjectService : IProjectService
     public Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
-        {
-            return _projectRepository.GetAll()
-                .Where(x => (archived && x.Archived) || (!archived && !x.Archived)).ToListAsync();
-        });
+            _projectRepository.GetAll()
+                .Where(x => archived && x.Archived || !archived && !x.Archived).ToListAsync()
+        );
     }
 
     public async Task SwapProjectOrder(int source, int target)
@@ -140,6 +139,35 @@ public class ProjectService : IProjectService
 
             await _projectRepository.Save(sp);
             await _projectRepository.Save(tp);
+        });
+    }
+
+    public async Task<ProjectComment> AddComment(int projectId, string content)
+    {
+        return await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var project = await _projectRepository.GetByKey(projectId);
+            if (project == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+
+            return await _projectCommentRepository.Add(new ProjectComment
+            {
+                Content = content,
+                Project = project
+            });
+        });
+    }
+
+    public Task<List<ProjectComment>> LoadComments(int projectId)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+        {
+            var cmts = _projectCommentRepository.GetAll()
+                .Where(x => x.Project.Id == projectId)
+                .ToListAsync();
+            return cmts;
         });
     }
 }

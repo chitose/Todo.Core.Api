@@ -6,6 +6,8 @@ namespace Todo.Core.Persistence.SessionFactory;
 
 public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListener
 {
+    private const string SystemId = "System";
+
     public Task<bool> OnPreInsertAsync(PreInsertEvent @event, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested) return Task.FromResult(false);
@@ -19,7 +21,8 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
             var now = DateTime.UtcNow;
             auditEntity.CreatedAt = now;
             auditEntity.ModifiedAt = now;
-            auditEntity.Author = auditEntity.Editor = UserContext.UserName ?? "System";
+            auditEntity.Author = auditEntity.Editor = UserContext.UserName ?? SystemId;
+            auditEntity.AuthorId = auditEntity.EditorId = UserContext.UserId ?? SystemId;
         }
 
         return false;
@@ -38,7 +41,8 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
         {
             var now = DateTime.UtcNow;
             auditEntity.ModifiedAt = now;
-            auditEntity.Editor = UserContext.UserName ?? "System";
+            auditEntity.Editor = UserContext.UserName ?? SystemId;
+            auditEntity.EditorId = UserContext.UserId ?? SystemId;
         }
 
         return false;

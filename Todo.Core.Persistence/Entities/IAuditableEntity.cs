@@ -8,5 +8,9 @@ public interface IAuditableEntity
 
     string Author { get; set; }
 
+    string AuthorId { get; set; }
+
     string Editor { get; set; }
+
+    string EditorId { get; set; }
 }

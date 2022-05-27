@@ -21,5 +21,9 @@ public abstract class BaseEntityMapping<T> : ClassMapping<T> where T : BaseEntit
         });
         Property(x => x.CreatedAt, c => { c.Column("created_at"); });
         Property(x => x.ModifiedAt, c => { c.Column("modified_at"); });
+        Property(x => x.AuthorId, c => { c.Column("author_id"); });
+        Property(x => x.Author, c => { c.Column("author"); });
+        Property(x => x.EditorId, c => { c.Column("editor_id"); });
+        Property(x => x.Editor, c => { c.Column("editor"); });
     }
 }
