@@ -9,5 +9,6 @@ public class DbModule : Module
     {
         builder.RegisterType<SqliteDbConfiguration>().As<INhibernateDatabaseConfiguration>();
         builder.RegisterType<AuditConfiguration>().As<INhibernateDatabaseConfiguration>();
+        builder.RegisterType<IdentityMappingConfiguration>().As<INhibernateDatabaseConfiguration>();
     }
 }

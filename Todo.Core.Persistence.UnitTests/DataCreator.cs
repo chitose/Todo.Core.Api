@@ -16,8 +16,9 @@ public class DataCreator
     private readonly IProjectSectionRepository _projectSectionRepository;
     private readonly ICommentRepository<TaskComment> _taskCommentRepository;
     private readonly ITaskRepository _taskRepository;
+
     private readonly IUnitOfWorkProvider _unitOfWorkProvider;
-    private readonly IUserRepository _userRepository;
+    //private readonly IUserRepository _userRepository;
 
     public DataCreator(ILifetimeScope scope)
     {
@@ -28,7 +29,7 @@ public class DataCreator
         _labelRepository = scope.Resolve<ILabelRepository>();
         _projectCommentRepository = scope.Resolve<ICommentRepository<ProjectComment>>();
         _taskCommentRepository = scope.Resolve<ICommentRepository<TaskComment>>();
-        _userRepository = scope.Resolve<IUserRepository>();
+        //_userRepository = scope.Resolve<IUserRepository>();
     }
 
     public void Remove(BaseEntity entity)
@@ -40,7 +41,10 @@ public class DataCreator
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
         {
-            var prj = new Project { Name = name };
+            var prj = new Project
+            {
+                Name = name
+            };
             _createdEntities.Add(prj);
             return _projectRepository.Add(prj);
         });
@@ -50,7 +54,8 @@ public class DataCreator
     {
         var sect = new ProjectSection
         {
-            Title = name, Project = prj
+            Title = name,
+            Project = prj
         };
         _createdEntities.Add(sect);
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectSectionRepository.Add(
@@ -59,7 +64,10 @@ public class DataCreator
 
     public Task<Label> CreateLabel(string name)
     {
-        var lbl = new Label { Title = name };
+        var lbl = new Label
+        {
+            Title = name
+        };
         _createdEntities.Add(lbl);
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _labelRepository.Add(lbl));
     }

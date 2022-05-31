@@ -5,19 +5,47 @@ namespace Todo.Core.Service.Project;
 
 public interface IProjectService
 {
-    Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo);
+    Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
+        CancellationToken cancellationToken = default);
 
-    Task<Persistence.Entities.Project> GetProject(int id);
+    Task<Persistence.Entities.Project> GetProject(int id, CancellationToken cancellationToken = default);
 
-    Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo);
+    Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo,
+        CancellationToken cancellationToken = default);
 
-    Task DeleteProject(int id);
+    Task DeleteProject(int id, CancellationToken cancellationToken = default);
 
-    Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false);
+    Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false,
+        CancellationToken cancellationToken = default);
 
-    Task SwapProjectOrder(int source, int target);
+    Task<Persistence.Entities.Project> ArchiveProject(int projectId, CancellationToken cancellationToken = default);
 
-    Task<ProjectComment> AddComment(int projectId, string content);
+    Task<Persistence.Entities.Project> UnarchiveProject(int projectId, CancellationToken cancellationToken = default);
 
-    Task<List<ProjectComment>> LoadComments(int projectId);
+    Task InviteUserToProject(int projectId, string userId, CancellationToken cancellationToken = default);
+
+    Task RemoveUserFromProject(int projectId, string userId, CancellationToken cancellationToken = default);
+
+    Task LeaveProject(int projectId, CancellationToken cancellationToken = default);
+
+    Task SwapProjectOrder(int source, int target, CancellationToken cancellationToken = default);
+
+    Task<ProjectComment> AddComment(int projectId, string content, CancellationToken cancellationToken = default);
+
+    Task<List<ProjectComment>> LoadComments(int projectId, CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> AddSection(string title, int? aboveSection = null, int? belowSection = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> UpdateSection(int sectId, string title, CancellationToken cancellationToken = default);
+
+    Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> UnarchiveSection(int sectionId, CancellationToken cancellationToken = default);
+
+    Task DeleteSection(int sectionId, CancellationToken cancellationToken = default);
+
+    Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default);
 }

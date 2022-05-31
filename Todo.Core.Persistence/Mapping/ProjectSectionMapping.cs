@@ -17,6 +17,8 @@ public class ProjectSectionMapping : BaseEntityMapping<ProjectSection>
             c.Length(256);
         });
 
+        Property(x => x.Archived, c => c.Column("archived"));
+
         ManyToOne(x => x.Project, m =>
         {
             m.Cascade(Cascade.None);
@@ -30,7 +32,7 @@ public class ProjectSectionMapping : BaseEntityMapping<ProjectSection>
         Set(x => x.Tasks, m =>
         {
             m.Lazy(CollectionLazy.Lazy);
-            m.Cascade(Cascade.None);
+            m.Cascade(Cascade.All);
             m.Inverse(true);
             m.Key(x =>
             {

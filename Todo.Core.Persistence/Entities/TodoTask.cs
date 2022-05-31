@@ -2,7 +2,7 @@
 
 namespace Todo.Core.Persistence.Entities;
 
-public class TodoTask : BaseEntity
+public class TodoTask : BaseEntity, IOrderable
 {
     public virtual string Title { get; set; }
 
@@ -11,8 +11,6 @@ public class TodoTask : BaseEntity
     public virtual DateTime? DueDate { get; set; }
 
     public virtual TaskPriority Priority { get; set; } = TaskPriority.Normal;
-
-    public virtual int Order { get; set; }
 
     public virtual User? AssignedTo { get; set; }
 
@@ -29,4 +27,6 @@ public class TodoTask : BaseEntity
     public virtual Project? Project { get; set; }
 
     public virtual ICollection<TaskComment> Comments { get; set; } = new List<TaskComment>();
+
+    public virtual int Order { get; set; }
 }

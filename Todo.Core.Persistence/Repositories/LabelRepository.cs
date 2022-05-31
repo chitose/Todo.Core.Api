@@ -14,7 +14,7 @@ public class LabelRepository : GenericEntityRepository<Label>, ILabelRepository
 
     public override async Task<Label> Add(Label entity, CancellationToken cancellationToken = default)
     {
-        entity.Owner = await _userRepository.GetByUserId(UserContext.UserId);
+        entity.Owner = await _userRepository.FindByUserName(UserContext.UserId!);
         return await base.Add(entity, cancellationToken);
     }
 }

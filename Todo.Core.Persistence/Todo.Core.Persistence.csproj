@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Autofac" Version="6.3.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.5" />
         <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.5" />
         <PackageReference Include="NHibernate" Version="5.3.12" />
         <PackageReference Include="NHibernate.AspNetCore.Identity" Version="6.0.7" />

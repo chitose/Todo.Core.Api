@@ -1,10 +1,8 @@
 ﻿namespace Todo.Core.Persistence.Entities;
 
-public class Label : BaseEntity
+public class Label : BaseEntity, IOrderable
 {
     public virtual string Title { get; set; }
-
-    public virtual int Order { get; set; }
 
     public virtual bool Shared { get; set; }
 
@@ -13,4 +11,6 @@ public class Label : BaseEntity
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
     public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
+
+    public virtual int Order { get; set; }
 }

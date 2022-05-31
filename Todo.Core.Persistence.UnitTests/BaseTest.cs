@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Antlr.Runtime.Misc;
 using Autofac;
 using Microsoft.AspNetCore.Builder;
 using NUnit.Framework;
@@ -13,6 +14,7 @@ namespace Todo.Core.Persistence.UnitTests;
 
 public abstract class BaseTest
 {
+    protected const string TestUserPassword = "N0P@ssw0rd4Ever";
     protected readonly string? TestUserId = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
     protected readonly string? TestUserId1 = "BDAC1CBA-32FA-49B8-8512-A328E8083687";
 
@@ -33,37 +35,31 @@ public abstract class BaseTest
             "Todo.Core.*.dll"
         });
         _scope = container.BeginLifetimeScope();
-        UserContext.UserName = "User for test";
+        UserContext.UserDisplayName = "User for test";
         UserContext.UserId = TestUserId;
         _dataCreator = new DataCreator(_scope);
-
-        var userRepo = _scope.Resolve<IUserRepository>();
         _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();
-        // create test user if not exist
-        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
-        {
-            _user1 = await userRepo.GetByUserId(TestUserId);
-            if (_user1 == null)
-            {
-                _user1 = new User
-                {
-                    UserId = TestUserId,
-                    DisplayName = "User for test"
-                };
-                await userRepo.Add(_user1);
-            }
+        var userRepo = _scope.Resolve<IUserRepository>();
 
-            _user2 = await userRepo.GetByUserId(TestUserId1);
-            if (_user2 == null)
+        var user1 = await userRepo.FindByUserName(TestUserId);
+        if (user1 == null)
+        {
+            await userRepo.CreateUser(new User
             {
-                _user2 = new User
-                {
-                    UserId = TestUserId1,
-                    DisplayName = "User 1 for test"
-                };
-                await userRepo.Add(_user2);
-            }
-        });
+                UserName = TestUserId,
+                Email = "test@todo.com"
+            }, TestUserPassword);
+        }
+
+        var user2 = await userRepo.FindByUserName(TestUserId1);
+        if (user2 == null)
+        {
+            await userRepo.CreateUser(new User
+            {
+                UserName = TestUserId1,
+                Email = "test1@todo.com"
+            }, TestUserPassword);
+        }
 
         SaveExecutionContext();
     }
@@ -93,7 +89,24 @@ public abstract class BaseTest
 
     protected void SwitchUser(User user)
     {
-        UserContext.UserId = user.UserId;
-        UserContext.UserName = user.DisplayName;
+        UserContext.UserId = user.UserName;
+        UserContext.UserDisplayName = user.DisplayName;
+    }
+
+    protected void RunWithContextOfUser(User user, Action action)
+    {
+        var oldUserName = UserContext.UserId;
+        var oldUserDispName = UserContext.UserDisplayName;
+        UserContext.UserId = user.UserName;
+        UserContext.UserDisplayName = user.DisplayName;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            UserContext.UserId = oldUserName;
+            UserContext.UserDisplayName = oldUserDispName;
+        }
     }
 }

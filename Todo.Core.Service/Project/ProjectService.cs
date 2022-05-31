@@ -4,6 +4,8 @@ using Todo.Core.Common.Exception;
 using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Domain.Project;
 using Todo.Core.Persistence.Entities;
+using Todo.Core.Persistence.Exceptions;
+using Todo.Core.Persistence.Extensions;
 using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Service.Project;
@@ -13,19 +15,23 @@ public class ProjectService : IProjectService
     private readonly IMapper _mapper;
     private readonly ICommentRepository<ProjectComment> _projectCommentRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IProjectSectionRepository _projectSectionRepository;
     private readonly IUnitOfWorkProvider _unitOfWorkProvider;
 
     public ProjectService(ICommentRepository<ProjectComment> projectCommentRepository,
         IProjectRepository projectRepository, IUnitOfWorkProvider unitOfWorkProvider,
+        IProjectSectionRepository projectSectionRepository,
         IMapper mapper)
     {
         _projectRepository = projectRepository;
         _projectCommentRepository = projectCommentRepository;
         _unitOfWorkProvider = unitOfWorkProvider;
         _mapper = mapper;
+        _projectSectionRepository = projectSectionRepository;
     }
 
-    public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo)
+    public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
+        CancellationToken cancellationToken = default)
     {
         if (creationInfo.AboveProject.HasValue && creationInfo.BelowProject.HasValue)
         {
@@ -35,36 +41,6 @@ public class ProjectService : IProjectService
 
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var projectOrder = 0;
-            if (creationInfo.AboveProject.HasValue || creationInfo.BelowProject.HasValue)
-            {
-                var targetProject = await
-                    _projectRepository.GetByKey(creationInfo.AboveProject ?? creationInfo.BelowProject!.Value);
-
-                var otherProjectsQuery = _projectRepository.GetAll();
-                if (creationInfo.AboveProject.HasValue)
-                {
-                    projectOrder = targetProject.Order - 1;
-                    otherProjectsQuery = otherProjectsQuery.Where(x => x.Order < targetProject.Order);
-                }
-                else
-                {
-                    projectOrder = targetProject.Order + 1;
-                    otherProjectsQuery = otherProjectsQuery.Where(x => x.Order > targetProject.Order);
-                }
-
-                var otherProjects = await otherProjectsQuery.ToListAsync();
-                otherProjects.ForEach(p =>
-                {
-                    p.Order += (creationInfo.AboveProject.HasValue ? -1 : 1) * 1;
-                    _projectRepository.Save(p);
-                });
-            }
-            else
-            {
-                projectOrder = await _projectRepository.GetAll().MaxAsync(x => x.Order) + 1;
-            }
-
             var project = new Persistence.Entities.Project
             {
                 Name = creationInfo.Name,
@@ -74,22 +50,24 @@ public class ProjectService : IProjectService
                 GroupBy = creationInfo.GroupBy ?? string.Empty,
                 SortBy = creationInfo.SortBy ?? string.Empty,
                 SortAsc = creationInfo.SortAsc ?? false,
-                Order = projectOrder
+                Order = await _projectRepository.CalculateNewEntityOrder(creationInfo.AboveProject,
+                    creationInfo.BelowProject, cancellationToken)
             };
-            return await _projectRepository.Add(project);
+            return await _projectRepository.Add(project, cancellationToken);
         });
     }
 
-    public Task<Persistence.Entities.Project> GetProject(int id)
+    public Task<Persistence.Entities.Project> GetProject(int id, CancellationToken cancellationToken = default)
     {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.GetByKey(id));
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.GetByKey(id, cancellationToken));
     }
 
-    public Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo)
+    public Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo,
+        CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var project = await _projectRepository.GetByKey(id);
+            var project = await _projectRepository.GetByKey(id, cancellationToken);
             if (project == null)
             {
                 throw new ProjectNotFoundException(id);
@@ -97,56 +75,99 @@ public class ProjectService : IProjectService
 
             _mapper.Map(updateInfo, project);
 
-            await _projectRepository.Save(project);
+            await _projectRepository.Save(project, cancellationToken);
 
             return project;
         });
     }
 
-    public Task DeleteProject(int id)
+    public Task DeleteProject(int id, CancellationToken cancellationToken = default)
     {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.DeleteByKey(id));
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+            _projectRepository.DeleteByKey(id, cancellationToken));
     }
 
-    public Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false)
+    public Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false,
+        CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
             _projectRepository.GetAll()
-                .Where(x => archived && x.Archived || !archived && !x.Archived).ToListAsync()
+                .Where(x => archived && x.Archived || !archived && !x.Archived).ToListAsync(cancellationToken)
         );
     }
 
-    public async Task SwapProjectOrder(int source, int target)
+    public Task<Persistence.Entities.Project> ArchiveProject(int projectId,
+        CancellationToken cancellationToken = default)
     {
-        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var projects = await _projectRepository.GetAll()
-                .Where(x => x.Id == source || x.Id == target).ToListAsync();
-
-            var sp = projects.FirstOrDefault(p => p.Id == source);
-            var tp = projects.FirstOrDefault(p => p.Id == target);
-            if (sp == null)
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
+            if (prj == null)
             {
-                throw new ProjectNotFoundException(source);
+                throw new ProjectNotFoundException(projectId);
             }
 
-            if (tp == null)
-            {
-                throw new ProjectNotFoundException(target);
-            }
+            prj.Archived = true;
 
-            (sp.Order, tp.Order) = (tp.Order, sp.Order);
-
-            await _projectRepository.Save(sp);
-            await _projectRepository.Save(tp);
+            return await _projectRepository.Save(prj, cancellationToken);
         });
     }
 
-    public async Task<ProjectComment> AddComment(int projectId, string content)
+    public Task<Persistence.Entities.Project> UnarchiveProject(int projectId,
+        CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+
+            prj.Archived = false;
+
+            return await _projectRepository.Save(prj, cancellationToken);
+        });
+    }
+
+    public Task InviteUserToProject(int projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var prj = await _projectRepository.GetByKey(projectId);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+
+            //var user = 
+        });
+    }
+
+    public Task RemoveUserFromProject(int projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task LeaveProject(int projectId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task SwapProjectOrder(int source, int target, CancellationToken cancellationToken = default)
+    {
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            await _projectRepository.SwapEntityOrder(source, target, cancellationToken);
+        });
+    }
+
+    public async Task<ProjectComment> AddComment(int projectId, string content,
+        CancellationToken cancellationToken = default)
     {
         return await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var project = await _projectRepository.GetByKey(projectId);
+            var project = await _projectRepository.GetByKey(projectId, cancellationToken);
             if (project == null)
             {
                 throw new ProjectNotFoundException(projectId);
@@ -156,18 +177,87 @@ public class ProjectService : IProjectService
             {
                 Content = content,
                 Project = project
-            });
+            }, cancellationToken);
         });
     }
 
-    public Task<List<ProjectComment>> LoadComments(int projectId)
+    public Task<List<ProjectComment>> LoadComments(int projectId, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
         {
-            var cmts = _projectCommentRepository.GetAll()
+            var comments = _projectCommentRepository.GetAll()
                 .Where(x => x.Project.Id == projectId)
-                .ToListAsync();
-            return cmts;
+                .ToListAsync(cancellationToken);
+            return comments;
         });
     }
+
+    #region Section
+
+    public Task<ProjectSection> AddSection(string title, int? aboveSection = null, int? belowSection = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var sect = new ProjectSection
+            {
+                Title = title,
+                Order = await _projectSectionRepository.CalculateNewEntityOrder(aboveSection, belowSection,
+                    cancellationToken)
+            };
+
+            return await _projectSectionRepository.Add(sect, cancellationToken);
+        });
+    }
+
+    public Task<ProjectSection> UpdateSection(int sectId, string title, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var sect = await _projectSectionRepository.GetByKey(sectId, cancellationToken);
+            if (sect == null)
+            {
+                throw new SectionNotFoundException(sectId);
+            }
+
+            sect.Title = title;
+            await _projectSectionRepository.Save(sect, cancellationToken);
+            return sect;
+        });
+    }
+
+    public Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            await _projectSectionRepository.SwapEntityOrder(source, target, cancellationToken);
+        });
+    }
+
+    public Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default)
+    {
+        // set archive = true
+        // mark this section's tasks as done
+        throw new NotImplementedException();
+    }
+
+    public Task<ProjectSection> UnarchiveSection(int sectionId, CancellationToken cancellationToken = default)
+    {
+        // set archive = false
+        // no task status update
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteSection(int sectionId, CancellationToken cancellationToken = default)
+    {
+        // delete the task
+        throw new NotImplementedException();
+    }
+
+    public Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
 }

@@ -88,13 +88,11 @@ public class ProjectServiceTests : BaseTest
         prj = await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
         {
             Name = "Update name",
-            View = ProjectView.List,
-            Archived = true
+            View = ProjectView.List
         });
 
         Assert.AreEqual(prj.Name, "Update name");
         Assert.AreEqual(prj.View, ProjectView.List);
-        Assert.AreEqual(prj.Archived, true);
     }
 
     [Test]

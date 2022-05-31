@@ -1,18 +1,15 @@
-using Autofac;
 using Todo.Core.Common.Autofac;
-using Todo.Core.Common.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var ar = builder.UseAutofac(new[] { "Todo.Core.*.dll" });
+var ar = builder.UseAutofac(new[]
+{
+    "Todo.Core.*.dll"
+});
 
 WebApplication app = null;
 using (var scope = ar.BeginLifetimeScope())
 {
-    var startupConfigs = scope.Resolve<IEnumerable<IStartupConfiguration>>().OrderBy(x => x.Order);
-
-    foreach (var sc in startupConfigs) sc.ConfigureBuilder(builder);
-
     // Add services to the container.
 
     builder.Services.AddControllers();

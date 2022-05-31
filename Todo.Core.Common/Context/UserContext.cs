@@ -14,10 +14,10 @@ public static class UserContext
         set => _contextHandler.SetValue(nameof(UserId), value);
     }
 
-    public static string? UserName
+    public static string? UserDisplayName
     {
-        get => _contextHandler.GetValue<string>(nameof(UserName));
-        set => _contextHandler.SetValue(nameof(UserName), value);
+        get => _contextHandler.GetValue<string>(nameof(UserDisplayName));
+        set => _contextHandler.SetValue(nameof(UserDisplayName), value);
     }
 
     public static void InitializeContext(IContextHandler contextHandler)

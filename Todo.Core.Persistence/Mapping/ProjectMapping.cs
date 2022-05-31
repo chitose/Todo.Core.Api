@@ -129,5 +129,18 @@ public class ProjectMapping : BaseEntityMapping<Project>
                 c.ForeignKey("project_section_fk");
             });
         }, r => { r.OneToMany(); });
+
+        Set(x => x.Tasks, m =>
+            {
+                m.Lazy(CollectionLazy.Lazy);
+                m.Cascade(Cascade.All);
+                m.Inverse(true);
+                m.Key(c =>
+                {
+                    c.Column("project_id");
+                    c.ForeignKey("project_task_fk");
+                });
+            },
+            r => r.OneToMany());
     }
 }

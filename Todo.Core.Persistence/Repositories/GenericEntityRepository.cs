@@ -9,7 +9,7 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
 {
     protected ISession Session => UnitOfWork.Current?.GetCurrentSession();
 
-    public IQueryable<TEntity> GetAll()
+    public virtual IQueryable<TEntity> GetAll()
     {
         return Session.Query<TEntity>();
     }

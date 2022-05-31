@@ -2,7 +2,11 @@ using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Persistence.Repositories;
 
-public interface IUserRepository : IGenericRepository<User>
+public interface IUserRepository
 {
-    Task<User> GetByUserId(string? testUserId);
+    Task<User> FindById(string id);
+
+    Task<User> FindByUserName(string username);
+
+    Task<User> CreateUser(User user, string password);
 }

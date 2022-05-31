@@ -9,8 +9,10 @@ public class ProjectCreationInfo : ProjectUpdateInfo
     public new string Name { get; set; }
 
     public new ProjectView View { get; set; }
-    
+
+    public bool? Archived { get; set; }
+
     public int? AboveProject { get; set; }
-    
+
     public int? BelowProject { get; set; }
 }

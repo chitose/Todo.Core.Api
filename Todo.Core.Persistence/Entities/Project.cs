@@ -2,7 +2,7 @@ using Todo.Core.Domain.Enum;
 
 namespace Todo.Core.Persistence.Entities;
 
-public class Project : BaseEntity
+public class Project : BaseEntity, IOrderable
 {
     public virtual string Name { get; set; }
 
@@ -19,8 +19,6 @@ public class Project : BaseEntity
     public virtual bool Default { get; set; }
 
     public virtual bool Archived { get; set; }
-    
-    public virtual int Order { get; set; }
 
     public virtual ICollection<ProjectComment> Comments { get; set; } = new List<ProjectComment>();
 
@@ -31,4 +29,6 @@ public class Project : BaseEntity
     public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
 
     public virtual ICollection<ProjectSection> Sections { get; set; } = new List<ProjectSection>();
+
+    public virtual int Order { get; set; }
 }

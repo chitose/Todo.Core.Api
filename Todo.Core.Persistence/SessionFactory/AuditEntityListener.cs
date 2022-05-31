@@ -21,7 +21,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
             var now = DateTime.UtcNow;
             auditEntity.CreatedAt = now;
             auditEntity.ModifiedAt = now;
-            auditEntity.Author = auditEntity.Editor = UserContext.UserName ?? SystemId;
+            auditEntity.Author = auditEntity.Editor = UserContext.UserDisplayName ?? SystemId;
             auditEntity.AuthorId = auditEntity.EditorId = UserContext.UserId ?? SystemId;
         }
 
@@ -41,7 +41,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
         {
             var now = DateTime.UtcNow;
             auditEntity.ModifiedAt = now;
-            auditEntity.Editor = UserContext.UserName ?? SystemId;
+            auditEntity.Editor = UserContext.UserDisplayName ?? SystemId;
             auditEntity.EditorId = UserContext.UserId ?? SystemId;
         }
 
