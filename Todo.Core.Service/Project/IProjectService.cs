@@ -22,9 +22,9 @@ public interface IProjectService
 
     Task<Persistence.Entities.Project> UnarchiveProject(int projectId, CancellationToken cancellationToken = default);
 
-    Task InviteUserToProject(int projectId, string userId, CancellationToken cancellationToken = default);
+    Task InviteUserToProject(int projectId, string userName, CancellationToken cancellationToken = default);
 
-    Task RemoveUserFromProject(int projectId, string userId, CancellationToken cancellationToken = default);
+    Task RemoveUserFromProject(int projectId, string userName, CancellationToken cancellationToken = default);
 
     Task LeaveProject(int projectId, CancellationToken cancellationToken = default);
 
@@ -41,8 +41,20 @@ public interface IProjectService
 
     Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Archive the section, mark all of its subtask as completed.
+    /// </summary>
+    /// <param name="sectionId">Section id</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
     Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Unarchive the section, no changes in sub tasks
+    /// </summary>
+    /// <param name="sectionId">Section id</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
     Task<ProjectSection> UnarchiveSection(int sectionId, CancellationToken cancellationToken = default);
 
     Task DeleteSection(int sectionId, CancellationToken cancellationToken = default);

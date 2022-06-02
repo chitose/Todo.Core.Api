@@ -165,7 +165,7 @@ public class ProjectServiceTests : BaseTest
 
         Assert.IsNotNull(cmt);
         Assert.IsTrue(cmt.Id > 0);
-        Assert.IsTrue(cmt.AuthorId == UserContext.UserId);
+        Assert.IsTrue(cmt.AuthorId == UserContext.UserName);
     }
 
     [Test]
@@ -182,4 +182,18 @@ public class ProjectServiceTests : BaseTest
         Assert.IsTrue(cmts.Exists(c => c.Id == cmt.Id
                                        || c.Id == cmt1.Id));
     }
+
+    [Test]
+    public async Task Invite_user_should_work()
+    {
+        await _projectService.InviteUserToProject(_anchorProject.Id, _user2.UserName);
+        _anchorProject = await _projectService.GetProject(_anchorProject.Id);
+        Assert.IsTrue(_anchorProject.Users.Any(u => u.Id == _user2.Id));
+    }
+
+    #region Sections
+
+    
+
+    #endregion
 }

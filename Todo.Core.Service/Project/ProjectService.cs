@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using NHibernate.Linq;
+using Todo.Core.Common.Context;
 using Todo.Core.Common.Exception;
 using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Domain.Project;
@@ -7,6 +8,7 @@ using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
 using Todo.Core.Persistence.Extensions;
 using Todo.Core.Persistence.Repositories;
+using Todo.Core.Service.User;
 
 namespace Todo.Core.Service.Project;
 
@@ -17,17 +19,19 @@ public class ProjectService : IProjectService
     private readonly IProjectRepository _projectRepository;
     private readonly IProjectSectionRepository _projectSectionRepository;
     private readonly IUnitOfWorkProvider _unitOfWorkProvider;
+    private readonly IUserService _userService;
 
     public ProjectService(ICommentRepository<ProjectComment> projectCommentRepository,
         IProjectRepository projectRepository, IUnitOfWorkProvider unitOfWorkProvider,
         IProjectSectionRepository projectSectionRepository,
-        IMapper mapper)
+        IMapper mapper, IUserService userService)
     {
         _projectRepository = projectRepository;
         _projectCommentRepository = projectCommentRepository;
         _unitOfWorkProvider = unitOfWorkProvider;
         _mapper = mapper;
         _projectSectionRepository = projectSectionRepository;
+        _userService = userService;
     }
 
     public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
@@ -130,28 +134,74 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task InviteUserToProject(int projectId, string userId, CancellationToken cancellationToken = default)
+    public Task InviteUserToProject(int projectId, string userName, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var prj = await _projectRepository.GetByKey(projectId);
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
             if (prj == null)
             {
                 throw new ProjectNotFoundException(projectId);
             }
 
-            //var user = 
+            var user = await _userService.GetUserByUserName(userName);
+            if (user == null)
+            {
+                throw new UserNotFoundException(userName);
+            }
+
+            if (!prj.Users.Any(u => u.Id == user.Id))
+            {
+                prj.Users.Add(user);
+                await _projectRepository.Save(prj, cancellationToken);
+            }
         });
     }
 
-    public Task RemoveUserFromProject(int projectId, string userId, CancellationToken cancellationToken = default)
+    public Task RemoveUserFromProject(int projectId, string userName, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+
+            var u = prj.Users.FirstOrDefault(x => x.Id == userName);
+
+            if (u != null)
+            {
+                prj.Users.Remove(u);
+                await _projectRepository.Save(prj, cancellationToken);
+            }
+        });
     }
 
     public Task LeaveProject(int projectId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var prj = await _projectRepository.GetAll()
+                .Fetch(x => x.Users)
+                .FirstOrDefaultAsync(x => x.Id == projectId, cancellationToken);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+
+            if (prj.Users.Count == 1)
+            {
+                throw new TodoException($"Cannot leave project without any collaborator.");
+            }
+
+            var u = prj.Users.FirstOrDefault(x => x.UserName == UserContext.UserName);
+            if (u != null)
+            {
+                prj.Users.Remove(u);
+                await _projectRepository.Save(prj, cancellationToken);
+            }
+        });
     }
 
     public async Task SwapProjectOrder(int source, int target, CancellationToken cancellationToken = default)
@@ -234,11 +284,30 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default)
+    public async Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default)
     {
         // set archive = true
         // mark this section's tasks as done
-        throw new NotImplementedException();
+        return await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var sect = await _projectSectionRepository
+                .GetAll()
+                .Fetch(x => x.Tasks)
+                .FirstOrDefaultAsync(x => x.Id == sectionId, cancellationToken);
+
+            if (sect == null)
+            {
+                throw new SectionNotFoundException(sectionId);
+            }
+
+            sect.Archived = true;
+            foreach (var t in sect.Tasks)
+            {
+                t.Completed = true;
+            }
+
+            return sect;
+        });
     }
 
     public Task<ProjectSection> UnarchiveSection(int sectionId, CancellationToken cancellationToken = default)

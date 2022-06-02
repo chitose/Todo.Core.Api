@@ -37,7 +37,8 @@ public static class RepositoryExtensions
         }
         else
         {
-            order = await repo.GetAll().MaxAsync(x => x.Order, cancellationToken) + 1;
+            var maxdbOrder = (await repo.GetAll().OrderByDescending(x => x.Order).FirstOrDefaultAsync())?.Order ?? 0;
+            order = maxdbOrder + 1;
         }
 
         return order;
