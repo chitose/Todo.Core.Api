@@ -100,7 +100,6 @@ public class ProjectMapping : BaseEntityMapping<Project>
             });
             colm.Cascade(Cascade.None);
             colm.Lazy(CollectionLazy.Lazy);
-            colm.Inverse(true);
         }, col => { col.ManyToMany(x => x.Column("user_id")); });
 
         Set(x => x.Labels, colm =>
@@ -114,7 +113,6 @@ public class ProjectMapping : BaseEntityMapping<Project>
             });
             colm.Cascade(Cascade.None);
             colm.Lazy(CollectionLazy.Lazy);
-            colm.Inverse(true);
         }, col => { col.ManyToMany(x => x.Column("label_id")); });
 
         Set(x => x.Sections, m =>

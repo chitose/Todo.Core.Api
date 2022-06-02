@@ -83,7 +83,6 @@ public class TaskMapping : BaseEntityMapping<TodoTask>
             });
             colm.Cascade(Cascade.None);
             colm.Lazy(CollectionLazy.Lazy);
-            colm.Inverse(true);
         }, col => { col.ManyToMany(x => x.Column("label_id")); });
 
         Set(x => x.Comments, c =>

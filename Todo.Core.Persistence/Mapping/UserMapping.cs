@@ -44,7 +44,6 @@ public class UserMapping : JoinedSubclassMapping<User>
             });
             opt.Cascade(Cascade.All);
             opt.Lazy(CollectionLazy.Lazy);
-            opt.Inverse(true);
         }, opt => { opt.ManyToMany(x => x.Column("project_id")); });
 
         Set(x => x.Tasks, m =>
