@@ -8,7 +8,7 @@ public interface IProjectService
     Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
         CancellationToken cancellationToken = default);
 
-    Task<Persistence.Entities.Project> GetProject(int id, CancellationToken cancellationToken = default);
+    Task<Persistence.Entities.Project?> GetProject(int id, CancellationToken cancellationToken = default);
 
     Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo,
         CancellationToken cancellationToken = default);

@@ -1,14 +1,17 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
 using Todo.Core.Common.Context;
+using Todo.Core.Common.Tests;
 using Todo.Core.Domain.Enum;
 using Todo.Core.Domain.Project;
-using Todo.Core.Persistence.UnitTests;
+using Todo.Core.Persistence.Exceptions;
 using Todo.Core.Service.Project;
 
-namespace Todo.Core.Service.UnitTests;
+namespace Todo.Core.Service.Tests;
 
 [TestFixture]
 public class ProjectServiceTests : BaseTest
@@ -32,7 +35,7 @@ public class ProjectServiceTests : BaseTest
         _anchorProject = await _projectService.GetProject(_anchorProject.Id);
     }
 
-    private Persistence.Entities.Project _anchorProject;
+    private Persistence.Entities.Project? _anchorProject;
 
     private IProjectService _projectService;
 
@@ -160,18 +163,18 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Add_comment_should_work()
     {
-        var cmt = await _projectService.AddComment(_anchorProject.Id,
+        var cmt = await _projectService.AddComment(_anchorProject!.Id,
             "Hello");
 
-        Assert.IsNotNull(cmt);
-        Assert.IsTrue(cmt.Id > 0);
-        Assert.IsTrue(cmt.AuthorId == UserContext.UserName);
+        cmt.Should().NotBeNull();
+        cmt.Id.Should().BePositive();
+        cmt.AuthorId.Should().Be(UserContext.UserName);
     }
 
     [Test]
     public async Task Load_comments_should_work()
     {
-        var cmt = await _projectService.AddComment(_anchorProject.Id,
+        var cmt = await _projectService.AddComment(_anchorProject!.Id,
             $"Hello from {_user1.DisplayName}");
         SwitchUser(_user2);
         var cmt1 = await _projectService.AddComment(_anchorProject.Id,
@@ -179,16 +182,23 @@ public class ProjectServiceTests : BaseTest
 
         var cmts = await _projectService.LoadComments(_anchorProject.Id);
 
-        Assert.IsTrue(cmts.Exists(c => c.Id == cmt.Id
-                                       || c.Id == cmt1.Id));
+        cmts.Should().Contain(c => c.Id == cmt.Id || c.Id == cmt1.Id);
     }
 
     [Test]
     public async Task Invite_user_should_work()
     {
-        await _projectService.InviteUserToProject(_anchorProject.Id, _user2.UserName);
+        await _projectService.InviteUserToProject(_anchorProject!.Id, _user2.UserName);
         _anchorProject = await _projectService.GetProject(_anchorProject.Id);
-        Assert.IsTrue(_anchorProject.Users.Any(u => u.Id == _user2.Id));
+        _anchorProject!.Users.Should().Contain(u => u.Id == _user2.Id);
+    }
+
+    [Test]
+    public async Task Cannot_invite_invalid_user()
+    {
+        Func<Task> act = async () => await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_non_existance_user_name");
+
+        await act.Should().ThrowAsync<UserNotFoundException>();
     }
 
     #region Sections

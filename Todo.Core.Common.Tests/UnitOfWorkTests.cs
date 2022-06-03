@@ -3,7 +3,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Todo.Core.Common.UnitOfWork;
 
-namespace Todo.Core.Common.UnitTests;
+namespace Todo.Core.Common.Tests;
 
 public class UnitOfWorkTests
 {

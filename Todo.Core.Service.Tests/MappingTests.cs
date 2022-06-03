@@ -1,11 +1,12 @@
 using Autofac;
 using AutoMapper;
+using FluentAssertions;
 using NUnit.Framework;
+using Todo.Core.Common.Tests;
 using Todo.Core.Domain.Enum;
 using Todo.Core.Domain.Project;
-using Todo.Core.Persistence.UnitTests;
 
-namespace Todo.Core.Service.UnitTests;
+namespace Todo.Core.Service.Tests;
 
 [TestFixture]
 public class MappingTests : BaseTest
@@ -35,9 +36,9 @@ public class MappingTests : BaseTest
         };
 
         _mapper.Map(prjUpdateInfo, prj);
-
-        Assert.AreEqual(prj.Name, prjUpdateInfo.Name);
-        Assert.IsTrue(prj.Archived == false);
-        Assert.AreEqual(prj.View, prjUpdateInfo.View);
+        
+        prj.Name.Should().BeEquivalentTo(prjUpdateInfo.Name);
+        prj.Archived.Should().BeFalse();
+        prj.View.Should().Be(prjUpdateInfo.View);
     }
 }

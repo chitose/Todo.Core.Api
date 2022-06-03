@@ -1,12 +1,14 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
+using Todo.Core.Common.Tests;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 [TestFixture]
-public class TaskRepositoryTests : BaseTest
+public class TaskRepositoryTests : BaseRepositoryTest
 {
     [OneTimeSetUp]
     public new void OneTimeSetup()
@@ -21,14 +23,18 @@ public class TaskRepositoryTests : BaseTest
     {
         var prj = await _dataCreator.CreateProject("Test project");
         var task = await _dataCreator.CreateTask(prj, "Test task");
-        Assert.IsTrue(task.Id > 0);
+
+        task.Should().NotBeNull();
+        task.Id.Should().BePositive();
 
         var sect = await _dataCreator.CreateProjectSection(prj, "Test sect");
         var taskInSect = await _dataCreator.CreateTask(prj, "Task in section", sect);
-        Assert.IsTrue(taskInSect.Id > 0);
+        taskInSect.Should().NotBeNull();
+        taskInSect.Id.Should().BePositive();
 
         var childTask = await _dataCreator.CreateTask(prj, "child task", parent: task);
-        Assert.IsTrue(childTask.Id > 0);
+        childTask.Should().NotBeNull();
+        childTask.Id.Should().BePositive();
     }
 
     [Test]
@@ -46,7 +52,7 @@ public class TaskRepositoryTests : BaseTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var ut = await _taskRepository.GetByKey(task.Id);
-            Assert.AreEqual(ut.Title, task.Title);
+            ut.Title.Should().BeEquivalentTo(task.Title);
         });
     }
 
@@ -60,6 +66,6 @@ public class TaskRepositoryTests : BaseTest
         _dataCreator.Remove(task);
         task = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _taskRepository.GetByKey(task.Id));
 
-        Assert.IsNull(task);
+        task.Should().BeNull();
     }
 }

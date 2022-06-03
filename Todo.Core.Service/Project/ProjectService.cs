@@ -61,7 +61,7 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task<Persistence.Entities.Project> GetProject(int id, CancellationToken cancellationToken = default)
+    public Task<Persistence.Entities.Project?> GetProject(int id, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.GetByKey(id, cancellationToken));
     }

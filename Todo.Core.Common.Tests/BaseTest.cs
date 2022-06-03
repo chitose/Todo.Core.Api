@@ -10,7 +10,7 @@ using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Common.Tests;
 
 public abstract class BaseTest
 {
@@ -18,7 +18,6 @@ public abstract class BaseTest
     protected readonly string? TestUsername = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
     protected readonly string? TestUsername2 = "BDAC1CBA-32FA-49B8-8512-A328E8083687";
 
-    protected DataCreator _dataCreator;
     private ExecutionContext _executionCtx;
     protected ILifetimeScope _scope;
     protected IUnitOfWorkProvider _unitOfWorkProvider;
@@ -37,7 +36,6 @@ public abstract class BaseTest
         _scope = container.BeginLifetimeScope();
         UserContext.UserDisplayName = "User for test";
         UserContext.UserName = TestUsername;
-        _dataCreator = new DataCreator(_scope);
         _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();
         var userRepo = _scope.Resolve<IUserRepository>();
 

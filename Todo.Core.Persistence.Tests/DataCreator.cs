@@ -5,11 +5,11 @@ using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 public class DataCreator
 {
-    private readonly IList<BaseEntity> _createdEntities = new List<BaseEntity>();
+    private readonly IList<BaseEntity?> _createdEntities = new List<BaseEntity?>();
     private readonly ILabelRepository _labelRepository;
     private readonly ICommentRepository<ProjectComment> _projectCommentRepository;
     private readonly IProjectRepository _projectRepository;
@@ -32,7 +32,7 @@ public class DataCreator
         //_userRepository = scope.Resolve<IUserRepository>();
     }
 
-    public void Remove(BaseEntity entity)
+    public void Remove(BaseEntity? entity)
     {
         _createdEntities.Remove(entity);
     }
@@ -62,7 +62,7 @@ public class DataCreator
             sect));
     }
 
-    public Task<Label> CreateLabel(string name)
+    public Task<Label?> CreateLabel(string name)
     {
         var lbl = new Label
         {

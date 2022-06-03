@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using NUnit.Framework;
+using Todo.Core.Common.Tests;
 using Todo.Core.Persistence.Entities;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 [TestFixture]
 public class UserRepositoryTests : BaseTest
@@ -30,6 +32,6 @@ public class UserRepositoryTests : BaseTest
         };
 
         var result = await _userManager.CreateAsync(user, "N0P@ssw0rd4Ever");
-        Assert.IsTrue(result.Succeeded);
+        result.Succeeded.Should().BeTrue();
     }
 }

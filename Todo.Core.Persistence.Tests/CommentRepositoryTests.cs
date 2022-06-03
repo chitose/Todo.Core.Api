@@ -1,13 +1,14 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 [TestFixture]
-public class CommentRepositoryTests : BaseTest
+public class CommentRepositoryTests : BaseRepositoryTest
 {
     [OneTimeSetUp]
     public new async Task OneTimeSetup()
@@ -28,8 +29,8 @@ public class CommentRepositoryTests : BaseTest
     public async Task Add_project_comment_should_work()
     {
         var pc = await _dataCreator.CreateProjectComment(_project!, "Hello");
-        Assert.IsNotNull(pc);
-        Assert.IsTrue(pc.Id > 0);
+        pc.Should().NotBeNull();
+        pc.Id.Should().BePositive();
     }
 
     [Test]
@@ -45,7 +46,7 @@ public class CommentRepositoryTests : BaseTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var upc = await _projectCommentRepo!.GetByKey(pc.Id);
-            Assert.AreEqual(upc.Content, pc.Content);
+            upc.Content.Should().BeEquivalentTo(pc.Content);
         });
     }
 
@@ -53,22 +54,22 @@ public class CommentRepositoryTests : BaseTest
     public async Task Delete_project_comment_should_work()
     {
         var pc = await _dataCreator.CreateProjectComment(_project!, "dummy comment");
-        Assert.IsTrue(pc.Id > 0);
+        pc.Id.Should().BePositive();
         await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectCommentRepo!.Delete(pc));
 
         pc = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectCommentRepo!.GetByKey(pc.Id));
 
         _dataCreator.Remove(pc);
 
-        Assert.IsNull(pc);
+        pc.Should().BeNull();
     }
 
     [Test]
     public async Task Add_task_comment_should_work()
     {
         var tc = await _dataCreator.CreateTaskComment(_task, "hello task");
-        Assert.IsNotNull(tc);
-        Assert.IsTrue(tc.Id > 0);
+        tc.Should().NotBeNull();
+        tc.Id.Should().BePositive();
     }
 
     [Test]
@@ -83,7 +84,7 @@ public class CommentRepositoryTests : BaseTest
 
         var utc = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _taskCommentRepo!.GetByKey(tc.Id));
 
-        Assert.IsNotNull(utc);
-        Assert.AreEqual(utc.Content, tc.Content);
+        utc.Should().NotBeNull();
+        utc.Content.Should().BeEquivalentTo(tc.Content);
     }
 }

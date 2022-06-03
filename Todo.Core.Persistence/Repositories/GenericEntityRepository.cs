@@ -14,7 +14,7 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
         return Session.Query<TEntity>();
     }
 
-    public virtual Task<TEntity> GetByKey(int key, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> GetByKey(int key, CancellationToken cancellationToken = default)
     {
         return Session.Query<TEntity>()
             .Where(t => t.Id == key).SingleOrDefaultAsync(cancellationToken);
@@ -32,7 +32,7 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
         return entity;
     }
 
-    public virtual Task Delete(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual Task Delete(TEntity? entity, CancellationToken cancellationToken = default)
     {
         return Session.DeleteAsync(entity, cancellationToken);
     }

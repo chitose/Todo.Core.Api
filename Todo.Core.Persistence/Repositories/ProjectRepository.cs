@@ -14,11 +14,15 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
         _userRepository = userRepository;
     }
     
-    public override Task<Project> GetByKey(int key, CancellationToken cancellationToken = default)
+    public override async Task<Project?> GetByKey(int key, CancellationToken cancellationToken = default)
     {
-        return GetUserProjectOnly()
+        // work-around for issue with Fetch and FirstOrDefault
+        // see https://github.com/nhibernate/nhibernate-core/issues/1141
+        var result = await GetUserProjectOnly()
             .Fetch(x => x.Users)
-            .FirstOrDefaultAsync(x => x.Id == key, cancellationToken);
+            .Where(x => x.Id == key)
+            .ToListAsync(cancellationToken);
+        return result.FirstOrDefault();
     }
 
     public override IQueryable<Project> GetAll()

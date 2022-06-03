@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 [TestFixture]
-public class LabelRepositoryTests : BaseTest
+public class LabelRepositoryTests : BaseRepositoryTest
 {
     [OneTimeSetUp]
     public new void OneTimeSetup()
@@ -20,7 +21,7 @@ public class LabelRepositoryTests : BaseTest
     public async Task Add_label_should_work()
     {
         var lbl = await _dataCreator.CreateLabel("Test label");
-        Assert.IsTrue(lbl.Id > 0);
+        lbl.Id.Should().BePositive();
     }
 
     [Test]
@@ -37,7 +38,7 @@ public class LabelRepositoryTests : BaseTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var updateLbl = await _labelRepository.GetByKey(lbl.Id);
-            Assert.AreEqual(updateLbl.Title, lbl.Title);
+            updateLbl.Title.Should().BeEquivalentTo(lbl.Title);
         });
     }
 
@@ -53,7 +54,7 @@ public class LabelRepositoryTests : BaseTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var flbl = await _labelRepository.GetByKey(lbl.Id);
-            Assert.IsNull(flbl);
+            flbl.Should().BeNull();
         });
     }
 }

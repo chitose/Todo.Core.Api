@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
 using Todo.Core.Persistence.Repositories;
 
-namespace Todo.Core.Persistence.UnitTests;
+namespace Todo.Core.Persistence.Tests;
 
 [TestFixture]
-public class ProjectSectionTests : BaseTest
+public class ProjectSectionTests : BaseRepositoryTest
 {
     [OneTimeSetUp]
     public new void OneTimeSetup()
@@ -22,7 +23,8 @@ public class ProjectSectionTests : BaseTest
         var project = await _dataCreator.CreateProject("Test project");
         var section = await _dataCreator.CreateProjectSection(project, "Test section");
 
-        Assert.IsTrue(section.Id > 0);
+        section.Should().NotBeNull();
+        section.Id.Should().BePositive();
     }
 
     [Test]
@@ -39,7 +41,7 @@ public class ProjectSectionTests : BaseTest
         await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var usect = await _projectSectionRepository.GetByKey(sect.Id);
-            Assert.AreEqual(usect.Title, sect.Title);
+            usect.Title.Should().BeEquivalentTo(sect.Title);
         });
     }
 
@@ -55,6 +57,6 @@ public class ProjectSectionTests : BaseTest
 
         section = await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
             _projectSectionRepository.GetByKey(section.Id));
-        Assert.IsNull(section);
+        section.Should().BeNull();
     }
 }
