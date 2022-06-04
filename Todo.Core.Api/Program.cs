@@ -1,4 +1,6 @@
+using Autofac;
 using Todo.Core.Common.Autofac;
+using Todo.Core.Common.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +9,8 @@ var ar = builder.UseAutofac(new[]
     "Todo.Core.*.dll"
 });
 
-WebApplication app = null;
+WebApplication app;
+
 using (var scope = ar.BeginLifetimeScope())
 {
     // Add services to the container.
@@ -18,7 +21,7 @@ using (var scope = ar.BeginLifetimeScope())
     builder.Services.AddSwaggerGen();
 
     app = builder.Build();
-
+    var startupConfigs = scope.Resolve<IEnumerable<IStartupConfiguration>>();
     foreach (var sc in startupConfigs) sc.ConfigureApp(app);
 
     // Configure the HTTP request pipeline.
