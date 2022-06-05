@@ -34,72 +34,6 @@ public class ProjectService : IProjectService
         _userService = userService;
     }
 
-    public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
-        CancellationToken cancellationToken = default)
-    {
-        if (creationInfo.AboveProject.HasValue && creationInfo.BelowProject.HasValue)
-        {
-            throw new TodoException(
-                "Invalid project creation Info. Cannot add a project above and below other project at the same time.");
-        }
-
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
-        {
-            var project = new Persistence.Entities.Project
-            {
-                Name = creationInfo.Name,
-                View = creationInfo.View,
-                Default = creationInfo.Default ?? false,
-                Archived = creationInfo.Archived ?? false,
-                GroupBy = creationInfo.GroupBy ?? string.Empty,
-                SortBy = creationInfo.SortBy ?? string.Empty,
-                SortAsc = creationInfo.SortAsc ?? false,
-                Order = await _projectRepository.CalculateNewEntityOrder(creationInfo.AboveProject,
-                    creationInfo.BelowProject, cancellationToken)
-            };
-            return await _projectRepository.Add(project, cancellationToken);
-        });
-    }
-
-    public Task<Persistence.Entities.Project?> GetProject(int id, CancellationToken cancellationToken = default)
-    {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.GetByKey(id, cancellationToken));
-    }
-
-    public Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo,
-        CancellationToken cancellationToken = default)
-    {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
-        {
-            var project = await _projectRepository.GetByKey(id, cancellationToken);
-            if (project == null)
-            {
-                throw new ProjectNotFoundException(id);
-            }
-
-            _mapper.Map(updateInfo, project);
-
-            await _projectRepository.Save(project, cancellationToken);
-
-            return project;
-        });
-    }
-
-    public Task DeleteProject(int id, CancellationToken cancellationToken = default)
-    {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
-            _projectRepository.DeleteByKey(id, cancellationToken));
-    }
-
-    public Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false,
-        CancellationToken cancellationToken = default)
-    {
-        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
-            _projectRepository.GetAll()
-                .Where(x => archived && x.Archived || !archived && !x.Archived).ToListAsync(cancellationToken)
-        );
-    }
-
     public Task<Persistence.Entities.Project> ArchiveProject(int projectId,
         CancellationToken cancellationToken = default)
     {
@@ -168,6 +102,8 @@ public class ProjectService : IProjectService
                 throw new ProjectNotFoundException(projectId);
             }
 
+            ValidateProjectLeave(prj);
+
             var u = prj.Users.FirstOrDefault(x => x.Id == userName);
 
             if (u != null)
@@ -190,10 +126,7 @@ public class ProjectService : IProjectService
                 throw new ProjectNotFoundException(projectId);
             }
 
-            if (prj.Users.Count == 1)
-            {
-                throw new TodoException($"Cannot leave project without any collaborator.");
-            }
+            ValidateProjectLeave(prj);
 
             var u = prj.Users.FirstOrDefault(x => x.UserName == UserContext.UserName);
             if (u != null)
@@ -241,6 +174,93 @@ public class ProjectService : IProjectService
             return comments;
         });
     }
+
+    private static void ValidateProjectLeave(Persistence.Entities.Project prj)
+    {
+        if (prj.Users.Count == 1)
+        {
+            throw new TodoException("Cannot leave project without any collaborator.");
+        }
+    }
+
+    #region CRUD
+
+    public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
+        CancellationToken cancellationToken = default)
+    {
+        if (creationInfo.AboveProject.HasValue && creationInfo.BelowProject.HasValue)
+        {
+            throw new TodoException(
+                "Invalid project creation Info. Cannot add a project above and below other project at the same time.");
+        }
+
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var project = new Persistence.Entities.Project
+            {
+                Name = creationInfo.Name,
+                View = creationInfo.View,
+                Default = creationInfo.Default ?? false,
+                Archived = creationInfo.Archived ?? false,
+                GroupBy = creationInfo.GroupBy ?? string.Empty,
+                SortBy = creationInfo.SortBy ?? string.Empty,
+                SortAsc = creationInfo.SortAsc ?? false,
+                Order = await _projectRepository.CalculateNewEntityOrder(creationInfo.AboveProject,
+                    creationInfo.BelowProject, cancellationToken)
+            };
+            return await _projectRepository.Add(project, cancellationToken);
+        });
+    }
+
+    public Task<Persistence.Entities.Project?> GetProject(int id, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectRepository.GetByKey(id, cancellationToken));
+    }
+
+    public Task<Persistence.Entities.Project> UpdateProject(int id, ProjectUpdateInfo updateInfo,
+        CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var project = await _projectRepository.GetByKey(id, cancellationToken);
+            if (project == null)
+            {
+                throw new ProjectNotFoundException(id);
+            }
+
+            _mapper.Map(updateInfo, project);
+
+            await _projectRepository.Save(project, cancellationToken);
+
+            return project;
+        });
+    }
+
+    public Task DeleteProject(int id, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var prj = await _projectRepository.GetByKey(id);
+            if (prj.AuthorId != UserContext.UserName
+                || prj.Users.Count > 1)
+            {
+                throw new TodoException("Only project owner can delete the project");
+            }
+
+            return _projectRepository.DeleteByKey(id, cancellationToken);
+        });
+    }
+
+    public Task<List<Persistence.Entities.Project>> GetProjects(bool archived = false,
+        CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+            _projectRepository.GetAll()
+                .Where(x => archived && x.Archived || !archived && !x.Archived).ToListAsync(cancellationToken)
+        );
+    }
+
+    #endregion
 
     #region Section
 
@@ -301,10 +321,7 @@ public class ProjectService : IProjectService
             }
 
             sect.Archived = true;
-            foreach (var t in sect.Tasks)
-            {
-                t.Completed = true;
-            }
+            foreach (var t in sect.Tasks) t.Completed = true;
 
             return sect;
         });
@@ -314,18 +331,38 @@ public class ProjectService : IProjectService
     {
         // set archive = false
         // no task status update
-        throw new NotImplementedException();
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var sect = await _projectSectionRepository.GetByKey(sectionId, cancellationToken);
+            if (sect == null)
+            {
+                throw new SectionNotFoundException(sectionId);
+            }
+
+            sect.Archived = false;
+            return await _projectSectionRepository.Save(sect, cancellationToken);
+        });
     }
 
     public Task DeleteSection(int sectionId, CancellationToken cancellationToken = default)
     {
         // delete the task
-        throw new NotImplementedException();
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var sect = await _projectSectionRepository.GetByKey(sectionId, cancellationToken);
+            if (sect == null)
+            {
+                throw new SectionNotFoundException(sectionId);
+            }
+
+            await _projectSectionRepository.Delete(sect, cancellationToken);
+        });
     }
 
     public Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectSectionRepository.GetAll()
+            .Where(x => x.Project.Id == projectId).ToListAsync(cancellationToken));
     }
 
     #endregion

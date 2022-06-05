@@ -112,6 +112,11 @@ public class ProjectServiceTests : BaseTest
         prj = await _projectService.GetProject(prj.Id);
 
         Assert.IsNull(prj);
+
+        await RunWithContextOfUser(_user2, () =>
+        {
+            
+        });
     }
 
     [Test]

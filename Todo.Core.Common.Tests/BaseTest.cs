@@ -91,20 +91,23 @@ public abstract class BaseTest
         UserContext.UserDisplayName = user.DisplayName;
     }
 
-    protected void RunWithContextOfUser(User user, Action action)
+    protected async Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)
     {
         var oldUserName = UserContext.UserName;
         var oldUserDispName = UserContext.UserDisplayName;
         UserContext.UserName = user.UserName;
         UserContext.UserDisplayName = user.DisplayName;
+        T result;
         try
         {
-            action();
+            result = await action();
         }
         finally
         {
             UserContext.UserName = oldUserName;
             UserContext.UserDisplayName = oldUserDispName;
         }
+
+        return result;
     }
 }
