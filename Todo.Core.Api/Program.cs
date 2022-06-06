@@ -3,6 +3,7 @@ using Todo.Core.Common.Autofac;
 using Todo.Core.Common.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddUserSecrets("793431f5-9957-447d-87be-1e455b735d58");
 
 var ar = builder.UseAutofac(new[]
 {
@@ -33,6 +34,7 @@ using (var scope = ar.BeginLifetimeScope())
 
     app.UseHttpsRedirection();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

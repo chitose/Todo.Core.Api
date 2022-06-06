@@ -30,14 +30,21 @@ public static class WebApplicationBuilderExtensions
                 }
             }
 
-            var startupInstances = startupConfig.Select(s => Activator.CreateInstance(s) as IStartupConfiguration)
-                .OrderBy(x => x.Order);
-            foreach (var s in startupInstances) s.ConfigureBuilder(builder);
+            // var startupInstances = startupConfig.Select(s => Activator.CreateInstance(s) as IStartupConfiguration)
+            //     .OrderBy(x => x.Order);
+            // foreach (var s in startupInstances) s.ConfigureBuilder(builder);
         });
+        
         builder.Host.UseServiceProviderFactory(factory);
         var container = factory.CreateBuilder(builder.Services).Build();
         var contextHandler = container.Resolve<IContextHandler>();
         UserContext.InitializeContext(contextHandler);
+
+        var startupInstances = container.Resolve<IEnumerable<IStartupConfiguration>>();
+        foreach (var sc in startupInstances)
+        {
+            sc.ConfigureBuilder(builder);
+        }
 
         return container;
     }
