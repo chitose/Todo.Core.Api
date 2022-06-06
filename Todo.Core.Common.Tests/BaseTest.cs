@@ -90,11 +90,25 @@ public abstract class BaseTest
         UserContext.UserName = user.UserName;
         UserContext.UserDisplayName = user.DisplayName;
     }
+    
+    protected async Task RunWithContextOfUser(User user, Func<Task> action)
+    {
+        var content = UserContext.GetContent();
+        UserContext.UserName = user.UserName;
+        UserContext.UserDisplayName = user.DisplayName;
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            UserContext.RestoreFromContent(content);
+        }
+    }
 
     protected async Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)
     {
-        var oldUserName = UserContext.UserName;
-        var oldUserDispName = UserContext.UserDisplayName;
+        var content = UserContext.GetContent();
         UserContext.UserName = user.UserName;
         UserContext.UserDisplayName = user.DisplayName;
         T result;
@@ -104,8 +118,7 @@ public abstract class BaseTest
         }
         finally
         {
-            UserContext.UserName = oldUserName;
-            UserContext.UserDisplayName = oldUserDispName;
+            UserContext.RestoreFromContent(content);
         }
 
         return result;

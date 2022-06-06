@@ -22,4 +22,15 @@ public static class UserContext
     {
         _contextHandler = contextHandler;
     }
+
+    public static UserContextContent GetContent()
+    {
+        return new UserContextContent(UserName, UserDisplayName);
+    }
+
+    public static void RestoreFromContent(UserContextContent content)
+    {
+        UserName = content.UserId;
+        UserDisplayName = content.UserDisplayName;
+    }
 }

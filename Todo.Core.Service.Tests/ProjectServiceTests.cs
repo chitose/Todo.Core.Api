@@ -5,6 +5,7 @@ using Autofac;
 using FluentAssertions;
 using NUnit.Framework;
 using Todo.Core.Common.Context;
+using Todo.Core.Common.Exception;
 using Todo.Core.Common.Tests;
 using Todo.Core.Domain.Enum;
 using Todo.Core.Domain.Project;
@@ -40,7 +41,7 @@ public class ProjectServiceTests : BaseTest
     private IProjectService _projectService;
 
     [Test]
-    public async Task Create_project_should_work()
+    public async Task Create_project()
     {
         var prjCreationInfo = new ProjectCreationInfo
         {
@@ -61,7 +62,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Create_above_below_project_should_work()
+    public async Task Create_above_below_project()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
@@ -81,7 +82,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Update_project_should_work()
+    public async Task Update_project()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
@@ -99,7 +100,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Delete_project_should_work()
+    public async Task Delete_own_project()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
@@ -112,17 +113,43 @@ public class ProjectServiceTests : BaseTest
         prj = await _projectService.GetProject(prj.Id);
 
         Assert.IsNull(prj);
+    }
 
-        await RunWithContextOfUser(_user2, () =>
+    [Test]
+    public async Task Cannot_delete_other_project()
+    {
+        var user2Prj = await RunWithContextOfUser(_user2, () => _projectService.CreateProject(new ProjectCreationInfo
         {
-            
+            Name = "User 2 project"
+        }));
+
+        Func<Task> act = async () => await _projectService.DeleteProject(user2Prj.Id);
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+    }
+
+    [Test]
+    public async Task Only_owner_can_delete_project()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "User 1 project"
+        });
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+        
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            var act = async ()=> await _projectService.DeleteProject(prj.Id);
+            await act.Should().ThrowAsync<TodoException>()
+                .WithMessage($"Only project owner can delete the project");
         });
     }
 
     [Test]
     [TestCase(true)]
     [TestCase(false)]
-    public async Task Get_projects_should_work(bool isArchived)
+    public async Task Get_projects(bool isArchived)
     {
         await _projectService.CreateProject(new ProjectCreationInfo
         {
@@ -143,7 +170,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Swap_projects_order_should_work()
+    public async Task Swap_projects_order()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
@@ -166,7 +193,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Add_comment_should_work()
+    public async Task Add_comment()
     {
         var cmt = await _projectService.AddComment(_anchorProject!.Id,
             "Hello");
@@ -177,7 +204,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Load_comments_should_work()
+    public async Task Load_comments()
     {
         var cmt = await _projectService.AddComment(_anchorProject!.Id,
             $"Hello from {_user1.DisplayName}");
@@ -191,7 +218,7 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    public async Task Invite_user_should_work()
+    public async Task Invite_user()
     {
         await _projectService.InviteUserToProject(_anchorProject!.Id, _user2.UserName);
         _anchorProject = await _projectService.GetProject(_anchorProject.Id);

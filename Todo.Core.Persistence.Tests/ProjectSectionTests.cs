@@ -18,7 +18,7 @@ public class ProjectSectionTests : BaseRepositoryTest
     private IProjectSectionRepository _projectSectionRepository;
 
     [Test]
-    public async Task Project_section_creation_should_work()
+    public async Task Project_section_creation()
     {
         var project = await _dataCreator.CreateProject("Test project");
         var section = await _dataCreator.CreateProjectSection(project, "Test section");
@@ -28,7 +28,7 @@ public class ProjectSectionTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Project_section_update_should_work()
+    public async Task Project_section_update()
     {
         var prj = await _dataCreator.CreateProject("Test Project");
         var sect = await _dataCreator.CreateProjectSection(prj, "Test section");
@@ -46,7 +46,7 @@ public class ProjectSectionTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Project_section_deletion_should_work()
+    public async Task Project_section_deletion()
     {
         var project = await _dataCreator.CreateProject("Test project");
         var section = await _dataCreator.CreateProjectSection(project, "Test section");

@@ -240,7 +240,11 @@ public class ProjectService : IProjectService
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var prj = await _projectRepository.GetByKey(id);
+            var prj = await _projectRepository.GetByKey(id, cancellationToken);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(id);
+            }
             if (prj.AuthorId != UserContext.UserName
                 || prj.Users.Count > 1)
             {

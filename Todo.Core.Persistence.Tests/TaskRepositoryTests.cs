@@ -19,7 +19,7 @@ public class TaskRepositoryTests : BaseRepositoryTest
     private ITaskRepository _taskRepository;
 
     [Test]
-    public async Task Task_creation_should_work()
+    public async Task Task_creation()
     {
         var prj = await _dataCreator.CreateProject("Test project");
         var task = await _dataCreator.CreateTask(prj, "Test task");
@@ -38,7 +38,7 @@ public class TaskRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Task_update_should_work()
+    public async Task Task_update()
     {
         var prj = await _dataCreator.CreateProject("Test project");
         var task = await _dataCreator.CreateTask(prj, "Test task");
@@ -57,7 +57,7 @@ public class TaskRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Task_deletion_should_work()
+    public async Task Task_deletion()
     {
         var prj = await _dataCreator.CreateProject("Test project");
         var task = await _dataCreator.CreateTask(prj, "Test task");

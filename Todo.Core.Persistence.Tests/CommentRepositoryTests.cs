@@ -26,7 +26,7 @@ public class CommentRepositoryTests : BaseRepositoryTest
     private ICommentRepository<TaskComment>? _taskCommentRepo;
 
     [Test]
-    public async Task Add_project_comment_should_work()
+    public async Task Add_project_comment()
     {
         var pc = await _dataCreator.CreateProjectComment(_project!, "Hello");
         pc.Should().NotBeNull();
@@ -34,7 +34,7 @@ public class CommentRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Update_project_comment_should_work()
+    public async Task Update_project_comment()
     {
         var pc = await _dataCreator.CreateProjectComment(_project!, "dummy comment");
         await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
@@ -51,7 +51,7 @@ public class CommentRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Delete_project_comment_should_work()
+    public async Task Delete_project_comment()
     {
         var pc = await _dataCreator.CreateProjectComment(_project!, "dummy comment");
         pc.Id.Should().BePositive();
@@ -65,7 +65,7 @@ public class CommentRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Add_task_comment_should_work()
+    public async Task Add_task_comment()
     {
         var tc = await _dataCreator.CreateTaskComment(_task, "hello task");
         tc.Should().NotBeNull();
@@ -73,7 +73,7 @@ public class CommentRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Update_task_comment_should_work()
+    public async Task Update_task_comment()
     {
         var tc = await _dataCreator.CreateTaskComment(_task, "task cmt");
         await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>

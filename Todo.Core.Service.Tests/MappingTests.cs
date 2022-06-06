@@ -20,7 +20,7 @@ public class MappingTests : BaseTest
     private IMapper _mapper;
 
     [Test]
-    public void ProjectUpdateInfo_to_Project_should_work()
+    public void ProjectUpdateInfo_to_Project()
     {
         var prjUpdateInfo = new ProjectUpdateInfo
         {

@@ -18,14 +18,14 @@ public class LabelRepositoryTests : BaseRepositoryTest
     private ILabelRepository _labelRepository;
 
     [Test]
-    public async Task Add_label_should_work()
+    public async Task Add_label()
     {
         var lbl = await _dataCreator.CreateLabel("Test label");
         lbl.Id.Should().BePositive();
     }
 
     [Test]
-    public async Task Update_label_should_work()
+    public async Task Update_label()
     {
         var lbl = await _dataCreator.CreateLabel("Test lbl");
 
@@ -43,7 +43,7 @@ public class LabelRepositoryTests : BaseRepositoryTest
     }
 
     [Test]
-    public async Task Delete_label_should_work()
+    public async Task Delete_label()
     {
         var lbl = await _dataCreator.CreateLabel("Dummy lable");
 
