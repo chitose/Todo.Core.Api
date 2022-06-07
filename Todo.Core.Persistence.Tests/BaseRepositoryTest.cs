@@ -1,5 +1,4 @@
-﻿using Autofac;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Todo.Core.Common.Tests;
 
 namespace Todo.Core.Persistence.Tests;

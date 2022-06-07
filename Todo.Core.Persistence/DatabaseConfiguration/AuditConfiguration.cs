@@ -1,5 +1,4 @@
 ﻿using NHibernate.Cfg;
-using NHibernate.Envers.Configuration;
 using NHibernate.Envers.Configuration.Fluent;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.SessionFactory;

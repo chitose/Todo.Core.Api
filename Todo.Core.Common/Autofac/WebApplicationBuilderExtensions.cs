@@ -13,7 +13,6 @@ public static class WebApplicationBuilderExtensions
     {
         var factory = new AutofacServiceProviderFactory(cfg =>
         {
-            var startupConfig = new List<Type>();
             var rootDir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
             foreach (var filter in asembliesFilters)
             {
@@ -23,10 +22,6 @@ public static class WebApplicationBuilderExtensions
                 foreach (var assembly in assemblies)
                 {
                     cfg.RegisterAutoMapper(assembly);
-                    var startups = assembly.GetTypes().Where(t =>
-                        typeof(IBuilderStartupConfiguration).IsAssignableFrom(t)
-                        && t.IsClass);
-                    startupConfig.AddRange(startups);
                 }
             }
         });

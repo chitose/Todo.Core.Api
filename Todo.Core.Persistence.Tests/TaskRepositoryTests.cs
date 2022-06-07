@@ -2,7 +2,6 @@
 using Autofac;
 using FluentAssertions;
 using NUnit.Framework;
-using Todo.Core.Common.Tests;
 using Todo.Core.Persistence.Repositories;
 
 namespace Todo.Core.Persistence.Tests;

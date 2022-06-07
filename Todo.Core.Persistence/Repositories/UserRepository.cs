@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
@@ -26,6 +27,22 @@ public class UserRepository : IUserRepository
     public async Task<User> CreateUser(User user, string password)
     {
         var result = await _userManager.CreateAsync(user, password);
+        if (result.Succeeded)
+        {
+            return await _userManager.FindByNameAsync(user.UserName);
+        }
+
+        throw new CreateUserException(result.Errors);
+    }
+
+    public Task<User> GetUser(ClaimsPrincipal identity)
+    {
+        return _userManager.GetUserAsync(identity);
+    }
+
+    public async Task<User> CreateExtUser(User user)
+    {
+        var result = await _userManager.CreateAsync(user);
         if (result.Succeeded)
         {
             return await _userManager.FindByNameAsync(user.UserName);

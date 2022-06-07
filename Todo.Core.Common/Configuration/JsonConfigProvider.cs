@@ -16,6 +16,11 @@ public class JsonConfigProvider : IConfigProvider
             configBuilder.AddJsonFile($"appSettings.{environment}.json", true);
         }
 
+        if (environment == "Development")
+        {
+            configBuilder.AddJsonFile("appsettings.private.json", true);
+        }
+
         _configurationRoot = configBuilder.Build();
     }
 

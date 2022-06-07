@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace Todo.Core.Common.Context;
 
 public static class UserContext

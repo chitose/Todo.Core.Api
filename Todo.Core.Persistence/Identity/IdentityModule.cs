@@ -15,6 +15,10 @@ public class IdentityModule : Module
         builder.RegisterType<PasswordHasher<User>>().As<IPasswordHasher<User>>().InstancePerLifetimeScope();
         builder.RegisterType<UpperInvariantLookupNormalizer>().As<ILookupNormalizer>().InstancePerLifetimeScope();
         builder.RegisterType<IdentityErrorDescriber>().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<UserClaimsPrincipalFactory<User>>().As<IUserClaimsPrincipalFactory<User>>()
+            .InstancePerLifetimeScope();
+        builder.RegisterType<DefaultUserConfirmation<User>>().As<IUserConfirmation<User>>().InstancePerLifetimeScope();
+        builder.RegisterType<SecurityStampValidator<User>>().As<ISecurityStampValidator>().InstancePerLifetimeScope();
         builder.Register(c => c.Resolve<ISessionFactory>().WithOptions().OpenSession()).As<ISession>()
             .InstancePerLifetimeScope();
     }
