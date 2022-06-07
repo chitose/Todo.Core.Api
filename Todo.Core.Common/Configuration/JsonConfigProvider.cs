@@ -13,7 +13,12 @@ public class JsonConfigProvider : IConfigProvider
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         if (!string.IsNullOrEmpty(environment))
         {
-            configBuilder.AddJsonFile($"appSettings.{environment}.json", true);
+            configBuilder.AddJsonFile($"appsettings.{environment}.json", true);
+        }
+
+        if (environment == "Development")
+        {
+            configBuilder.AddJsonFile("appsettings.private.json", true);
         }
 
         if (environment == "Development")

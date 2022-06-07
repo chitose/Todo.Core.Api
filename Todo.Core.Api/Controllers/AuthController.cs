@@ -49,7 +49,7 @@ public class AuthController : Controller
     [Route("google-response")]
     public Task<UserDto?> GoogleResponse()
     {
-        return HanldeLoginResponse(CookieAuthenticationDefaults.AuthenticationScheme, "google");
+        return HanldeLoginResponse(GoogleDefaults.AuthenticationScheme, "google");
     }
 
     [HttpGet]
