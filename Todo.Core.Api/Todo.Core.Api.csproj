@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-      <UserSecretsId>793431f5-9957-447d-87be-1e455b735d58</UserSecretsId>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +17,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Todo.Core.Common\Todo.Core.Common.csproj" />
+        <ProjectReference Include="..\Todo.Core.Service\Todo.Core.Service.csproj" />
     </ItemGroup>
 
     <ItemGroup>
