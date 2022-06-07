@@ -9,9 +9,9 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.Twitter" Version="6.0.6" />
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="6.0.5" />
         <PackageReference Include="NHibernate.AspNetCore.Identity" Version="6.0.7" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     </ItemGroup>

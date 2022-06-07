@@ -50,4 +50,9 @@ public class UserRepository : IUserRepository
 
         throw new CreateUserException(result.Errors);
     }
+
+    public Task UpdateUser(User user)
+    {
+        return _userManager.UpdateAsync(user);
+    }
 }

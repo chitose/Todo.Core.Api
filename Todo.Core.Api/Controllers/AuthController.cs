@@ -1,5 +1,4 @@
-﻿using AspNet.Security.OAuth.Twitter;
-using Autofac;
+﻿using Autofac;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -62,7 +61,7 @@ public class AuthController : Controller
             RedirectUri = Url.Action("TwitterResponse")
         };
 
-        return Challenge(props, TwitterAuthenticationDefaults.AuthenticationScheme);
+        return Challenge(props, "Twitter");
     }
 
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -70,7 +69,7 @@ public class AuthController : Controller
     [Route("twitter-response")]
     public Task<UserDto?> TwitterResponse()
     {
-        return HanldeLoginResponse(TwitterAuthenticationDefaults.AuthenticationScheme, "twitter");
+        return HanldeLoginResponse("Twitter", "twitter");
     }
     
     private async Task<UserDto?> HanldeLoginResponse(string authScheme, string provider)
@@ -86,6 +85,11 @@ public class AuthController : Controller
             if (user == null)
             {
                 user = await _userService.CreateExtUser(userInfo);
+            }
+            else
+            {
+                _mapper.Map(userInfo, user);
+                await _userService.UpdateUser(user);
             }
 
             await _userService.SignIn(user, CookieAuthenticationDefaults.AuthenticationScheme);

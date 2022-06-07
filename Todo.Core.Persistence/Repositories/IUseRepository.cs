@@ -13,4 +13,5 @@ public interface IUserRepository
     
     Task<User> GetUser(ClaimsPrincipal identity);
     Task<User> CreateExtUser(User user);
+    Task UpdateUser(User user);
 }

@@ -14,4 +14,5 @@ public interface IUserService
     
     Task<Persistence.Entities.User> GetUser(ClaimsPrincipal firstOrDefault);
     Task SignIn(Persistence.Entities.User user, string authenticationMethod);
+    Task UpdateUser(Persistence.Entities.User user);
 }

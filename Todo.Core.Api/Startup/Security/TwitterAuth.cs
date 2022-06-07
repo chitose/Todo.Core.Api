@@ -15,11 +15,9 @@ public class TwitterAuth : IExternalAuthenticationConfiguration
         builder.AddTwitter(options =>
         {
             _configProvider.Bind("Authentication:Twitter", options);
-            options.Events.OnCreatingTicket = (context) =>
-            {
-                Console.WriteLine(context.User);
-                return Task.CompletedTask;
-            };
+            options.RetrieveUserDetails = true;
+            options.ClaimActions.MapJsonKey("profile_image_url_https","profile_image_url_https", "url");
+            options.ClaimActions.MapJsonKey("name","name", "text");
         });
     }
 }

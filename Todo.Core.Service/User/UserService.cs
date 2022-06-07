@@ -44,4 +44,9 @@ public class UserService : IUserService
     {
         return _signInManager.SignInAsync(user, false, authenticationMethod);
     }
+
+    public Task UpdateUser(Persistence.Entities.User user)
+    {
+        return _userRepository.UpdateUser(user);
+    }
 }
