@@ -24,28 +24,31 @@ public static class WebApplicationBuilderExtensions
                 {
                     cfg.RegisterAutoMapper(assembly);
                     var startups = assembly.GetTypes().Where(t =>
-                        typeof(IStartupConfiguration).IsAssignableFrom(t)
+                        typeof(IBuilderStartupConfiguration).IsAssignableFrom(t)
                         && t.IsClass);
                     startupConfig.AddRange(startups);
                 }
             }
-
-            // var startupInstances = startupConfig.Select(s => Activator.CreateInstance(s) as IStartupConfiguration)
-            //     .OrderBy(x => x.Order);
-            // foreach (var s in startupInstances) s.ConfigureBuilder(builder);
         });
-        
+
         builder.Host.UseServiceProviderFactory(factory);
         var container = factory.CreateBuilder(builder.Services).Build();
         var contextHandler = container.Resolve<IContextHandler>();
         UserContext.InitializeContext(contextHandler);
 
-        var startupInstances = container.Resolve<IEnumerable<IStartupConfiguration>>();
+        var startupInstances = container.Resolve<IEnumerable<IBuilderStartupConfiguration>>();
         foreach (var sc in startupInstances)
         {
             sc.ConfigureBuilder(builder);
         }
 
         return container;
+    }
+
+    public static void ConfigureStartup(this WebApplication app, ILifetimeScope scope)
+    {
+        var startupConfigs = scope.Resolve<IEnumerable<IAppStartupConfiguration>>()
+            .OrderBy(x => x.Order);
+        foreach (var sc in startupConfigs) sc.ConfigureApp(app);
     }
 }

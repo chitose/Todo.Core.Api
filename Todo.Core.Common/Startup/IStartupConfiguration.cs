@@ -1,10 +1,6 @@
 namespace Todo.Core.Common.Startup;
 
-public interface IStartupConfiguration
+public interface IBuilderStartupConfiguration
 {
-    int Order { get; }
-
     void ConfigureBuilder(WebApplicationBuilder builder);
-
-    void ConfigureApp(WebApplication app);
 }

@@ -3,7 +3,7 @@ using Todo.Core.Common.Startup;
 
 namespace Todo.Core.Common.Logging;
 
-public class SerilogStartupConfigurationConfiguration : IStartupConfiguration
+public class SerilogStartupConfigurationConfiguration : IBuilderStartupConfiguration, IAppStartupConfiguration
 {
     public int Order => 1;
 

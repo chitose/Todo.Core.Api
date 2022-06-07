@@ -11,7 +11,10 @@ public class JsonConfigProvider : IConfigProvider
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddJsonFile("appsettings.json");
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (!string.IsNullOrEmpty(environment)) configBuilder.AddJsonFile($"appSettings.{environment}.json");
+        if (!string.IsNullOrEmpty(environment))
+        {
+            configBuilder.AddJsonFile($"appSettings.{environment}.json", true);
+        }
 
         _configurationRoot = configBuilder.Build();
     }
@@ -22,7 +25,7 @@ public class JsonConfigProvider : IConfigProvider
         var converter = TypeDescriptor.GetConverter(typeof(T));
         if (converter == null) throw new NotSupportedException($"No supported converter for type {typeof(T)}");
 
-        return (T?)converter.ConvertFromString(strValue);
+        return (T?) converter.ConvertFromString(strValue);
     }
 
     public string GetConfigValue(string key)
@@ -40,5 +43,10 @@ public class JsonConfigProvider : IConfigProvider
         var settings = new T();
         _configurationRoot.GetSection(sectionName).Bind(settings);
         return settings;
+    }
+
+    public void Bind(string section, object configInstance)
+    {
+        _configurationRoot.GetSection(section).Bind(configInstance);
     }
 }

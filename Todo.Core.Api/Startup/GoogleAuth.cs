@@ -4,7 +4,7 @@ using Todo.Core.Common.Startup;
 
 namespace Todo.Core.Api.Startup;
 
-public class GoogleAuth : IStartupConfiguration
+public class GoogleAuth : IBuilderStartupConfiguration
 {
     private IConfigProvider _configProvider;
 
@@ -23,9 +23,7 @@ public class GoogleAuth : IStartupConfiguration
             })
             .AddGoogle(opts =>
             {
-                opts.ClientId = _configProvider.GetConfigValue("Authentication:Google_ClientId");
-                opts.ClientSecret = _configProvider.GetConfigValue("Authentication:Google_ClientSecret");
-                opts.CallbackPath = "/auth/google/callback";
+                _configProvider.Bind("Authentication:Google", opts);
             });
     }
 
