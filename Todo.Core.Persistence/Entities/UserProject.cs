@@ -6,6 +6,5 @@ public class UserProject
     public virtual User User { get; set; }
     public virtual Project Project { get; set; }
     public virtual bool Owner { get; set; }
-    
     public virtual DateTime JoinedTime { get; set; }
 }

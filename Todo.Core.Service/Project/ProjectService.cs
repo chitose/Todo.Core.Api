@@ -86,7 +86,12 @@ public class ProjectService : IProjectService
 
             if (!prj.UserProjects.Any(u => u.User.UserName == user.UserName))
             {
-                var up = new UserProject {User = user, Project = prj, JoinedTime = DateTime.UtcNow};
+                var up = new UserProject
+                {
+                    User = user,
+                    Project = prj,
+                    JoinedTime = DateTime.UtcNow
+                };
                 await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
                 prj.UserProjects.Add(up);
                 await _projectRepository.Save(prj, cancellationToken);
@@ -136,7 +141,7 @@ public class ProjectService : IProjectService
             {
                 await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
                 prj.UserProjects.Remove(u);
-                var newOwner = prj.UserProjects.FirstOrDefault();
+                var newOwner = prj.UserProjects.MinBy(x => x.JoinedTime);
                 newOwner.Owner = true;
                 await UnitOfWork.Current.GetCurrentSession().PersistAsync(newOwner, cancellationToken);
                 await _projectRepository.Save(prj, cancellationToken);
@@ -199,6 +204,11 @@ public class ProjectService : IProjectService
         {
             throw new TodoException(
                 "Invalid project creation Info. Cannot add a project above and below other project at the same time.");
+        }
+
+        if (string.IsNullOrWhiteSpace(creationInfo.Name))
+        {
+            throw new ArgumentNullException("Project name is required.", nameof(creationInfo.Name));
         }
 
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>

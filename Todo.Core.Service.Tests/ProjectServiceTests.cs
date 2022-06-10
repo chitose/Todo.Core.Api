@@ -66,8 +66,7 @@ public class ProjectServiceTests : BaseTest
     {
         Func<Task> act = async () => await _projectService.CreateProject(new ProjectCreationInfo());
 
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithMessage("Project name cannot be null or empty (Parameter 'Name')");
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Test]
@@ -119,9 +118,9 @@ public class ProjectServiceTests : BaseTest
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
-        {
+          {
             const string updateProjectName = "Update from user 2";
-            Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectCreationInfo
+            Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
             {
                 Name = updateProjectName
             });
@@ -281,4 +280,10 @@ public class ProjectServiceTests : BaseTest
 
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
+
+    #region Sections
+
+    
+
+    #endregion
 }

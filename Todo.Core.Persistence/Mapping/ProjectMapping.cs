@@ -93,8 +93,7 @@ public class ProjectMapping : BaseEntityMapping<Project>
         {
             colm.Key(c => { c.Column("project_id"); });
             colm.Inverse(true);
-            colm.Cascade(Cascade.None);
-            colm.OrderBy(x=>x.JoinedTime);
+            colm.Cascade(Cascade.All);
         }, col => { col.OneToMany(); });
 
         Set(x => x.Labels, colm =>
