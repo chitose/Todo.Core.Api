@@ -62,6 +62,15 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
+    public async Task Cannot_create_project_without_name()
+    {
+        Func<Task> act = async () => await _projectService.CreateProject(new ProjectCreationInfo());
+
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithMessage("Project name cannot be null or empty (Parameter 'Name')");
+    }
+
+    [Test]
     public async Task Create_above_below_project()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
@@ -97,6 +106,45 @@ public class ProjectServiceTests : BaseTest
 
         Assert.AreEqual(prj.Name, "Update name");
         Assert.AreEqual(prj.View, ProjectView.List);
+    }
+
+    [Test]
+    public async Task Collaborator_can_update_project()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "Project"
+        });
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            const string updateProjectName = "Update from user 2";
+            Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectCreationInfo
+            {
+                Name = updateProjectName
+            });
+
+            await act.Should().NotThrowAsync<ProjectNotFoundException>();
+            prj = await _projectService.GetProject(prj.Id);
+            prj.Name.Should().BeEquivalentTo(updateProjectName);
+        });
+    }
+
+    [Test]
+    public async Task Only_project_collaborator_can_see_project()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "test"
+        });
+
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            Func<Task<Persistence.Entities.Project>> act = async () => await _projectService.GetProject(prj.Id);
+            (await act.Should().NotThrowAsync()).Which.Should().BeNull();
+        });
     }
 
     [Test]
@@ -137,12 +185,12 @@ public class ProjectServiceTests : BaseTest
         });
 
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
-        
+
         await RunWithContextOfUser(_user2, async () =>
         {
-            var act = async ()=> await _projectService.DeleteProject(prj.Id);
+            var act = async () => await _projectService.DeleteProject(prj.Id);
             await act.Should().ThrowAsync<TodoException>()
-                .WithMessage($"Only project owner can delete the project");
+                .WithMessage("Only project owner can delete the project");
         });
     }
 
@@ -228,14 +276,9 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Cannot_invite_invalid_user()
     {
-        Func<Task> act = async () => await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_non_existance_user_name");
+        Func<Task> act = async () =>
+            await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_non_existance_user_name");
 
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
-
-    #region Sections
-
-    
-
-    #endregion
 }
