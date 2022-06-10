@@ -7,7 +7,7 @@ public class User : NHibernate.AspNetCore.Identity.IdentityUser
      public virtual string LastName { get; set; }
      public virtual string Photo { get; set; }
 
-     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+     public virtual ICollection<UserProject> UserProjects { get; set; } = new List<UserProject>();
 
     public virtual ICollection<TodoTask> Tasks { get; set; } = new List<TodoTask>();
 

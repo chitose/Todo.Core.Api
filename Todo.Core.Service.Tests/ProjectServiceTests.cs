@@ -222,7 +222,7 @@ public class ProjectServiceTests : BaseTest
     {
         await _projectService.InviteUserToProject(_anchorProject!.Id, _user2.UserName);
         _anchorProject = await _projectService.GetProject(_anchorProject.Id);
-        _anchorProject!.Users.Should().Contain(u => u.Id == _user2.Id);
+        _anchorProject!.UserProjects.Should().Contain(u => u.User.Id == _user2.Id);
     }
 
     [Test]

@@ -84,9 +84,11 @@ public class ProjectService : IProjectService
                 throw new UserNotFoundException(userName);
             }
 
-            if (!prj.Users.Any(u => u.Id == user.Id))
+            if (!prj.UserProjects.Any(u => u.User.UserName == user.UserName))
             {
-                prj.Users.Add(user);
+                var up = new UserProject {User = user, Project = prj, JoinedTime = DateTime.UtcNow};
+                await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
+                prj.UserProjects.Add(up);
                 await _projectRepository.Save(prj, cancellationToken);
             }
         });
@@ -104,11 +106,12 @@ public class ProjectService : IProjectService
 
             ValidateProjectLeave(prj);
 
-            var u = prj.Users.FirstOrDefault(x => x.Id == userName);
+            var u = prj.UserProjects.FirstOrDefault(x => x.User.UserName == userName);
 
             if (u != null)
             {
-                prj.Users.Remove(u);
+                await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
+                prj.UserProjects.Remove(u);
                 await _projectRepository.Save(prj, cancellationToken);
             }
         });
@@ -119,7 +122,7 @@ public class ProjectService : IProjectService
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var prj = await _projectRepository.GetAll()
-                .Fetch(x => x.Users)
+                .Fetch(x => x.UserProjects)
                 .FirstOrDefaultAsync(x => x.Id == projectId, cancellationToken);
             if (prj == null)
             {
@@ -128,10 +131,14 @@ public class ProjectService : IProjectService
 
             ValidateProjectLeave(prj);
 
-            var u = prj.Users.FirstOrDefault(x => x.UserName == UserContext.UserName);
+            var u = prj.UserProjects.FirstOrDefault(x => x.User.UserName == UserContext.UserName);
             if (u != null)
             {
-                prj.Users.Remove(u);
+                await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
+                prj.UserProjects.Remove(u);
+                var newOwner = prj.UserProjects.FirstOrDefault();
+                newOwner.Owner = true;
+                await UnitOfWork.Current.GetCurrentSession().PersistAsync(newOwner, cancellationToken);
                 await _projectRepository.Save(prj, cancellationToken);
             }
         });
@@ -177,7 +184,7 @@ public class ProjectService : IProjectService
 
     private static void ValidateProjectLeave(Persistence.Entities.Project prj)
     {
-        if (prj.Users.Count == 1)
+        if (prj.UserProjects.Count == 1)
         {
             throw new TodoException("Cannot leave project without any collaborator.");
         }
@@ -245,8 +252,9 @@ public class ProjectService : IProjectService
             {
                 throw new ProjectNotFoundException(id);
             }
+
             if (prj.AuthorId != UserContext.UserName
-                || prj.Users.Count > 1)
+                || prj.UserProjects.Count > 1)
             {
                 throw new TodoException("Only project owner can delete the project");
             }

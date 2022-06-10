@@ -22,7 +22,7 @@ public class Project : BaseEntity, IOrderable
 
     public virtual ICollection<ProjectComment> Comments { get; set; } = new List<ProjectComment>();
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<UserProject> UserProjects { get; set; } = new List<UserProject>();
 
     public virtual ICollection<Label> Labels { get; set; } = new List<Label>();
 

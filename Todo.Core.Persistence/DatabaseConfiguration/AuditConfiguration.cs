@@ -14,7 +14,7 @@ public class AuditConfiguration : INhibernateDatabaseConfiguration
         var enversConf = new FluentConfiguration();
         enversConf.Audit<Project>()
             .Exclude(p => p.Comments)
-            .Exclude(p => p.Users)
+            .Exclude(p => p.UserProjects)
             .Exclude(p => p.Sections);
         enversConf.Audit<Label>()
             .Exclude(x => x.Owner);

@@ -33,18 +33,12 @@ public class UserMapping : JoinedSubclassMapping<User>
             c.Length(255);
         });
 
-        Set(x => x.Projects, opt =>
+        Set(x => x.UserProjects, opt =>
         {
-            opt.Table("user_project");
-            opt.Key(x =>
-            {
-                x.Column("user_id");
-                x.ForeignKey("project_user_fk");
-                x.NotNullable(true);
-            });
+            opt.Key(x => { x.Column("user_id"); });
             opt.Cascade(Cascade.All);
-            opt.Lazy(CollectionLazy.Lazy);
-        }, opt => { opt.ManyToMany(x => x.Column("project_id")); });
+            opt.Inverse(true);
+        }, opt => { opt.OneToMany(); });
 
         Set(x => x.Tasks, m =>
         {
@@ -69,12 +63,12 @@ public class UserMapping : JoinedSubclassMapping<User>
             m.Lazy(CollectionLazy.Lazy);
             m.Inverse(true);
         }, r => r.OneToMany());
-        
-        Set(x=>x.Labels, m =>
+
+        Set(x => x.Labels, m =>
         {
             m.Cascade(Cascade.All);
             m.Lazy(CollectionLazy.Lazy);
             m.Inverse(true);
-        }, r=>r.OneToMany());
+        }, r => r.OneToMany());
     }
 }

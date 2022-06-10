@@ -1,5 +1,6 @@
 ﻿using NHibernate.Linq;
 using Todo.Core.Common.Context;
+using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
 
@@ -13,13 +14,13 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
     {
         _userRepository = userRepository;
     }
-    
+
     public override async Task<Project?> GetByKey(int key, CancellationToken cancellationToken = default)
     {
         // work-around for issue with Fetch and FirstOrDefault
         // see https://github.com/nhibernate/nhibernate-core/issues/1141
         var result = await GetUserProjectOnly()
-            .Fetch(x => x.Users)
+            .Fetch(x => x.UserProjects)
             .Where(x => x.Id == key)
             .ToListAsync(cancellationToken);
         return result.FirstOrDefault();
@@ -33,8 +34,17 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
     public override async Task<Project> Add(Project entity, CancellationToken cancellationToken = default)
     {
         var user = await _userRepository.FindByUserName(UserContext.UserName);
-        entity.Users.Add(user);
-        return await base.Add(entity, cancellationToken);
+        await base.Add(entity, cancellationToken);
+        var up = new UserProject
+        {
+            User = user,
+            Project = entity,
+            Owner = true,
+            JoinedTime = DateTime.UtcNow
+        };
+        await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
+        entity.UserProjects.Add(up);
+        return entity;
     }
 
     public override async Task DeleteByKey(int key, CancellationToken cancellationToken = default)
@@ -50,6 +60,6 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
 
     private IQueryable<Project> GetUserProjectOnly()
     {
-        return Session.Query<Project>().Where(p => p.Users.Any(u => u.UserName == UserContext.UserName));
+        return Session.Query<Project>().Where(p => p.UserProjects.Any(u => u.User.UserName == UserContext.UserName));
     }
 }
