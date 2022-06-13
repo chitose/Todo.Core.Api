@@ -127,9 +127,7 @@ public class ProjectService : IProjectService
         var userIdCtx = UserContext.UserName;
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var prj = await _projectRepository.GetAll()
-                .Fetch(x => x.UserProjects)
-                .FirstOrDefaultAsync(x => x.Id == projectId, cancellationToken);
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
             if (prj == null)
             {
                 throw new ProjectNotFoundException(projectId);

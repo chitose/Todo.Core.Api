@@ -118,7 +118,7 @@ public class ProjectServiceTests : BaseTest
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
-          {
+        {
             const string updateProjectName = "Update from user 2";
             Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
             {
@@ -193,6 +193,53 @@ public class ProjectServiceTests : BaseTest
             var act = async () => await _projectService.DeleteProject(prj.Id);
             await act.Should().ThrowAsync<TodoException>()
                 .WithMessage("Only project owner can delete the project");
+        });
+    }
+
+    [Test]
+    public async Task Remove_project_collaborator()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "User 1 project"
+        });
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+        prj = await _projectService.GetProject(prj.Id);
+
+        prj.UserProjects.Count.Should().Be(2);
+
+        await _projectService.RemoveUserFromProject(prj.Id, _user2.UserName);
+
+        prj = await _projectService.GetProject(prj.Id);
+
+        prj.UserProjects.Count.Should().Be(1);
+    }
+
+    [Test]
+    public async Task Leave_project()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "User 1 project"
+        });
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+        prj = await _projectService.GetProject(prj.Id);
+
+        prj.UserProjects.Should().Contain(x => x.User.UserName == _user1.UserName && x.Owner);
+        prj.UserProjects.Count().Should().Be(2);
+
+        await _projectService.LeaveProject(prj.Id);
+
+        RunWithContextOfUser(_user2, async () =>
+        {
+            prj = await _projectService.GetProject(prj.Id);
+
+            prj.UserProjects.Count.Should().Be(1);
+            prj.UserProjects.Should().Contain(x => x.User.UserName == _user2.UserName && x.Owner);
         });
     }
 
@@ -285,8 +332,6 @@ public class ProjectServiceTests : BaseTest
     }
 
     #region Sections
-
-    
 
     #endregion
 }

@@ -28,6 +28,7 @@ public class UserProjectMapping : ClassMapping<UserProject>
             m.Column("user_id");
             m.NotNullable(true);
             m.Cascade(Cascade.None);
+            m.Lazy(LazyRelation.NoLazy);
         });
     }
 }
