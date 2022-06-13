@@ -183,10 +183,13 @@ public class ProjectServiceTests : BaseTest
             Name = "User 1 project"
         });
 
+        prj.AuthorId.Should().Be(UserContext.UserName);
+
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
         {
+            UserContext.UserName.Should().Be(_user2.UserName);
             var act = async () => await _projectService.DeleteProject(prj.Id);
             await act.Should().ThrowAsync<TodoException>()
                 .WithMessage("Only project owner can delete the project");

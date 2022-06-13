@@ -31,4 +31,9 @@ public static class UserContext
         UserName = content.UserId;
         UserDisplayName = content.UserDisplayName;
     }
+
+    public static void CreateChildContext()
+    {
+        _contextHandler.CreateChildContext();
+    }
 }

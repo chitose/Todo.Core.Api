@@ -124,6 +124,7 @@ public class ProjectService : IProjectService
 
     public Task LeaveProject(int projectId, CancellationToken cancellationToken = default)
     {
+        var userIdCtx = UserContext.UserName;
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var prj = await _projectRepository.GetAll()
@@ -136,7 +137,7 @@ public class ProjectService : IProjectService
 
             ValidateProjectLeave(prj);
 
-            var u = prj.UserProjects.FirstOrDefault(x => x.User.UserName == UserContext.UserName);
+            var u = prj.UserProjects.FirstOrDefault(x => x.User.UserName == userIdCtx);
             if (u != null)
             {
                 await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
@@ -255,6 +256,7 @@ public class ProjectService : IProjectService
 
     public Task DeleteProject(int id, CancellationToken cancellationToken = default)
     {
+        var userIdCtx = UserContext.UserName;
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             var prj = await _projectRepository.GetByKey(id, cancellationToken);
@@ -263,7 +265,7 @@ public class ProjectService : IProjectService
                 throw new ProjectNotFoundException(id);
             }
 
-            if (prj.AuthorId != UserContext.UserName
+            if (prj.AuthorId != userIdCtx
                 || prj.UserProjects.Count > 1)
             {
                 throw new TodoException("Only project owner can delete the project");
