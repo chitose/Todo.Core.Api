@@ -13,15 +13,18 @@ public class SessionFactoryProvider
     private readonly IEnumerable<INhibernateDatabaseConfiguration> _dbConfigs;
     private readonly LoggingInterceptor _loggingInterceptor;
     private readonly IEnumerable<IModelMapperConfiguration> _modelMapperConfigurations;
+    private readonly IEnumerable<INhibernateListenerRegistration> _listenerRegistrations;
 
     public SessionFactoryProvider(IConfigProvider configProvider,
         IEnumerable<INhibernateDatabaseConfiguration> dbConfigs,
-        IEnumerable<IModelMapperConfiguration> modelMapperConfigurations, LoggingInterceptor loggingInterceptor)
+        IEnumerable<IModelMapperConfiguration> modelMapperConfigurations, LoggingInterceptor loggingInterceptor,
+        IEnumerable<INhibernateListenerRegistration> nhibernateListenerRegistrations)
     {
         _configProvider = configProvider;
         _dbConfigs = dbConfigs;
         _modelMapperConfigurations = modelMapperConfigurations;
         _loggingInterceptor = loggingInterceptor;
+        _listenerRegistrations = nhibernateListenerRegistrations;
     }
 
     public ISessionFactory CreateFactory()
@@ -33,8 +36,14 @@ public class SessionFactoryProvider
         var mapping = new ModelMapper();
         foreach (var mcfg in _modelMapperConfigurations) mcfg.ConfigureMapping(mapping);
 
-        config.SetListener(ListenerType.PreInsert, new AuditEntityListener());
-        config.SetListener(ListenerType.PreUpdate, new AuditEntityListener());
+        foreach (var lr in _listenerRegistrations)
+        {
+            foreach (var lt in lr.ListernerTypes)
+            {
+                config.SetListener(lt, lr);
+            }
+        }
+
         config.AddDeserializedMapping(mapping.CompileMappingForAllExplicitlyAddedEntities(), null);
         config.SetInterceptor(_loggingInterceptor);
 

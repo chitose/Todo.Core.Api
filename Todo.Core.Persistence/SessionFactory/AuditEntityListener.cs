@@ -4,7 +4,7 @@ using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Persistence.SessionFactory;
 
-public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListener
+public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListener, INhibernateListenerRegistration
 {
     private const string SystemId = "System";
 
@@ -47,4 +47,7 @@ public class AuditEntityListener : IPreInsertEventListener, IPreUpdateEventListe
 
         return false;
     }
+
+    public IList<ListenerType> ListernerTypes =>
+        new List<ListenerType> {ListenerType.PreInsert, ListenerType.PreUpdate};
 }

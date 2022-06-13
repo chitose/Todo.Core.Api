@@ -11,5 +11,7 @@ public class FactoryModule : Module
         builder.Register(c => c.Resolve<SessionFactoryProvider>().CreateFactory()).As<ISessionFactory>()
             .SingleInstance();
         builder.RegisterType<LoggingInterceptor>().SingleInstance();
+
+        builder.RegisterType<AuditEntityListener>().As<INhibernateListenerRegistration>().InstancePerDependency();
     }
 }

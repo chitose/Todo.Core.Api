@@ -34,12 +34,14 @@ public interface IProjectService
 
     Task<List<ProjectComment>> LoadComments(int projectId, CancellationToken cancellationToken = default);
 
-    Task<ProjectSection> AddSection(string title, int? aboveSection = null, int? belowSection = null,
+    Task<ProjectSection> AddSection(int projectId, string title, int? aboveSection = null, int? belowSection = null,
         CancellationToken cancellationToken = default);
 
-    Task<ProjectSection> UpdateSection(int sectId, string title, CancellationToken cancellationToken = default);
+    Task<ProjectSection> UpdateSection(int projectId, int sectId, string title, CancellationToken cancellationToken = default);
 
-    Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default);
+    Task SwapSectionOrder(int projectId, int source, int target, CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> GetSection(int sectId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Archive the section, mark all of its subtask as completed.

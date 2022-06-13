@@ -194,6 +194,14 @@ public class ProjectService : IProjectService
         }
     }
 
+    private static void ValidateProjectArchivedModification(Persistence.Entities.Project project)
+    {
+        if (project.Archived)
+        {
+            throw new TodoException("Cannot modify archived project");
+        }
+    }
+
     #region CRUD
 
     public Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
@@ -244,6 +252,8 @@ public class ProjectService : IProjectService
                 throw new ProjectNotFoundException(id);
             }
 
+            ValidateProjectArchivedModification(project);
+
             _mapper.Map(updateInfo, project);
 
             await _projectRepository.Save(project, cancellationToken);
@@ -286,13 +296,23 @@ public class ProjectService : IProjectService
 
     #region Section
 
-    public Task<ProjectSection> AddSection(string title, int? aboveSection = null, int? belowSection = null,
+    public Task<ProjectSection> AddSection(int projectId, string title, int? aboveSection = null,
+        int? belowSection = null,
         CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
+            var prj = await _projectRepository.GetByKey(projectId);
+            if (prj == null)
+            {
+                throw new ProjectNotFoundException(projectId);
+            }
+            
+            ValidateProjectArchivedModification(prj);
+            
             var sect = new ProjectSection
             {
+                Project = prj,
                 Title = title,
                 Order = await _projectSectionRepository.CalculateNewEntityOrder(aboveSection, belowSection,
                     cancellationToken)
@@ -302,7 +322,8 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task<ProjectSection> UpdateSection(int sectId, string title, CancellationToken cancellationToken = default)
+    public Task<ProjectSection> UpdateSection(int projectId, int sectId, string title,
+        CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
@@ -318,11 +339,19 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default)
+    public Task SwapSectionOrder(int projectId, int source, int target, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
             await _projectSectionRepository.SwapEntityOrder(source, target, cancellationToken);
+        });
+    }
+
+    public Task<ProjectSection> GetSection(int sectId, CancellationToken cancellationToken = default)
+    {
+        return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+        {
+            return _projectSectionRepository.GetByKey(sectId, cancellationToken);
         });
     }
 

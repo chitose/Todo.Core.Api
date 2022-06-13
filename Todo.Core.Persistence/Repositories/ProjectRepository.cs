@@ -44,6 +44,7 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
         };
         await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
         entity.UserProjects.Add(up);
+        
         return entity;
     }
 

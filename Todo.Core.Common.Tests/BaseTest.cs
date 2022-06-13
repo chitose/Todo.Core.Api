@@ -93,17 +93,13 @@ public abstract class BaseTest
     
     protected async Task RunWithContextOfUser(User user, Func<Task> action)
     {
-        var content = UserContext.GetContent();
-        UserContext.UserName = user.UserName;
-        UserContext.UserDisplayName = user.DisplayName;
-        try
+        Task.Run(async () =>
         {
+            UserContext.CreateChildContext();
+            UserContext.UserName = user.UserName;
+            UserContext.UserDisplayName = user.DisplayName;
             await action();
-        }
-        finally
-        {
-            UserContext.RestoreFromContent(content);
-        }
+        });
     }
 
     protected async Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)

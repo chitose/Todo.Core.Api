@@ -4,7 +4,7 @@ using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Persistence.Repositories;
 
-public class GenericReadonlyRepository<TEntity> : IGenericReadonlyRepository<TEntity> where TEntity : BaseEntity
+public abstract class GenericReadonlyRepository<TEntity> : IGenericReadonlyRepository<TEntity> where TEntity : BaseEntity
 {
     protected IStatelessSession Session => StatelessUnitOfWork.Current?.GetCurrentSession();
 

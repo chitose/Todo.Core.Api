@@ -108,6 +108,23 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
+    public async Task Cannot_update_archived_project()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo()
+        {
+            Name = "Archived project",
+            Archived = true
+        });
+
+        Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectCreationInfo
+        {
+            Name = "new name"
+        });
+
+        await act.Should().ThrowAsync<TodoException>().WithMessage($"Cannot modify archived project");
+    }
+
+    [Test]
     public async Task Collaborator_can_update_project()
     {
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
@@ -118,7 +135,7 @@ public class ProjectServiceTests : BaseTest
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
-        {
+          {
             const string updateProjectName = "Update from user 2";
             Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
             {
@@ -234,7 +251,7 @@ public class ProjectServiceTests : BaseTest
 
         await _projectService.LeaveProject(prj.Id);
 
-        RunWithContextOfUser(_user2, async () =>
+        await RunWithContextOfUser(_user2, async () =>
         {
             prj = await _projectService.GetProject(prj.Id);
 
@@ -332,6 +349,61 @@ public class ProjectServiceTests : BaseTest
     }
 
     #region Sections
+
+    [Test]
+    public async Task Add_project_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+
+        var sect = await _projectService.AddSection(prj.Id, "Test section");
+
+        sect.Should().NotBeNull();
+        sect.Id.Should().BePositive();
+    }
+
+    [Test]
+    public async Task Project_collaborate_add_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "Test project"
+        });
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            var sect = await _projectService.AddSection(prj.Id, "Test section");
+            sect.Id.Should().BePositive();
+        });
+    }
+
+    [Test]
+    public async Task None_project_collaborator_cannot_add_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+
+        Func<Task> act = async () => await _projectService.AddSection(prj.Id, "Test section");
+
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            await act.Should().ThrowAsync<ProjectNotFoundException>();
+        });
+    }
+
+    [Test]
+    public async Task Update_project_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+
+        var sect = await _projectService.AddSection(prj.Id, "Test section");
+
+        var updatedSect = await _projectService.UpdateSection(prj.Id, sect.Id, "New section name");
+
+        sect = await _projectService.GetSection(sect.Id);
+
+        sect.Title.Should().Be(updatedSect.Title);
+    }
 
     #endregion
 }
