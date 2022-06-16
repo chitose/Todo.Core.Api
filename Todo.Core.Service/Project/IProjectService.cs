@@ -1,10 +1,13 @@
-﻿using Todo.Core.Domain.Project;
+﻿using System.Diagnostics;
+using Todo.Core.Domain.Project;
 using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Service.Project;
 
 public interface IProjectService
 {
+    #region Project
+
     Task<Persistence.Entities.Project> CreateProject(ProjectCreationInfo creationInfo,
         CancellationToken cancellationToken = default);
 
@@ -30,18 +33,22 @@ public interface IProjectService
 
     Task SwapProjectOrder(int source, int target, CancellationToken cancellationToken = default);
 
+    #endregion
+
     Task<ProjectComment> AddComment(int projectId, string content, CancellationToken cancellationToken = default);
 
     Task<List<ProjectComment>> LoadComments(int projectId, CancellationToken cancellationToken = default);
 
+    #region Section
+
     Task<ProjectSection> AddSection(int projectId, string title, int? aboveSection = null, int? belowSection = null,
         CancellationToken cancellationToken = default);
 
-    Task<ProjectSection> UpdateSection(int projectId, int sectId, string title, CancellationToken cancellationToken = default);
+    Task<ProjectSection> UpdateSection(int sectId, string title, CancellationToken cancellationToken = default);
 
-    Task SwapSectionOrder(int projectId, int source, int target, CancellationToken cancellationToken = default);
+    Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default);
 
-    Task<ProjectSection> GetSection(int sectId, CancellationToken cancellationToken = default);
+    Task<ProjectSection?> GetSection(int sectId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Archive the section, mark all of its subtask as completed.
@@ -62,4 +69,6 @@ public interface IProjectService
     Task DeleteSection(int sectionId, CancellationToken cancellationToken = default);
 
     Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default);
+
+    #endregion
 }

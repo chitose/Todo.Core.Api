@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -12,6 +11,7 @@ using Todo.Core.Domain.Enum;
 using Todo.Core.Domain.Project;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
+using Todo.Core.Persistence.Repositories;
 using Todo.Core.Service.Project;
 
 namespace Todo.Core.Service.Tests;
@@ -19,11 +19,18 @@ namespace Todo.Core.Service.Tests;
 [TestFixture]
 public class ProjectServiceTests : BaseTest
 {
+    private Persistence.Entities.Project? _anchorProject;
+
+    private IProjectService _projectService = null!;
+
+    private ITaskRepository _taskRepository = null!;
+    
     [OneTimeSetUp]
     public new async Task OneTimeSetup()
     {
         RestoreExecutionContext();
         _projectService = _scope.Resolve<IProjectService>();
+        _taskRepository = _scope.Resolve<ITaskRepository>();
         _anchorProject = await _projectService.CreateProject(new ProjectCreationInfo
         {
             Name = "Anchor project"
@@ -35,12 +42,8 @@ public class ProjectServiceTests : BaseTest
     {
         RestoreExecutionContext();
         // update anchor project order
-        _anchorProject = await _projectService.GetProject(_anchorProject.Id);
+        _anchorProject = await _projectService.GetProject(_anchorProject!.Id);
     }
-
-    private Persistence.Entities.Project? _anchorProject;
-
-    private IProjectService _projectService;
 
     [Test]
     public async Task Create_project()
@@ -60,7 +63,7 @@ public class ProjectServiceTests : BaseTest
         Assert.IsNotNull(prj);
         Assert.AreEqual(prj.Name, prjCreationInfo.Name);
         Assert.AreEqual(prj.View, prjCreationInfo.View);
-        Assert.IsTrue(prj.Order > _anchorProject.Order);
+        Assert.IsTrue(prj.Order > _anchorProject!.Order);
     }
 
     [Test]
@@ -77,7 +80,7 @@ public class ProjectServiceTests : BaseTest
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
             Name = "above project",
-            AboveProject = _anchorProject.Id
+            AboveProject = _anchorProject!.Id
         });
 
         Assert.IsTrue(prj.Order < _anchorProject.Order);
@@ -129,24 +132,30 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Collaborator_can_update_project()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        var user1Project = await RunWithContextOfUser(_user1, async () =>
         {
-            Name = "Project"
-        });
+            var prj = await _projectService.CreateProject(new ProjectCreationInfo
+            {
+                Name = "Project"
+            });
 
-        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+            await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+            return prj;
+        });
 
         await RunWithContextOfUser(_user2, async () =>
         {
             const string updateProjectName = "Update from user 2";
-            Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
+            // ReSharper disable once AccessToModifiedClosure
+            Func<Task> act = async () => await _projectService.UpdateProject(user1Project.Id, new ProjectUpdateInfo
             {
                 Name = updateProjectName
             });
 
             await act.Should().NotThrowAsync<ProjectNotFoundException>();
-            prj = await _projectService.GetProject(prj.Id);
-            prj.Name.Should().BeEquivalentTo(updateProjectName);
+            user1Project = await _projectService.GetProject(user1Project.Id);
+            user1Project!.Name.Should().BeEquivalentTo(updateProjectName);
         });
     }
 
@@ -161,7 +170,7 @@ public class ProjectServiceTests : BaseTest
 
         await RunWithContextOfUser(_user2, async () =>
         {
-            Func<Task<Persistence.Entities.Project>> act = async () => await _projectService.GetProject(prj.Id);
+            Func<Task<Persistence.Entities.Project?>> act = async () => await _projectService.GetProject(prj.Id);
             (await act.Should().NotThrowAsync()).Which.Should().BeNull();
         });
     }
@@ -233,13 +242,13 @@ public class ProjectServiceTests : BaseTest
 
             prj = await _projectService.GetProject(prj.Id);
 
-            prj.UserProjects.Count.Should().Be(2);
+            prj!.UserProjects.Count.Should().Be(2);
 
             await _projectService.RemoveUserFromProject(prj.Id, _user2.UserName);
 
             prj = await _projectService.GetProject(prj.Id);
 
-            prj.UserProjects.Count.Should().Be(1);
+            prj!.UserProjects.Count.Should().Be(1);
         });
     }
 
@@ -255,8 +264,8 @@ public class ProjectServiceTests : BaseTest
 
         prj = await _projectService.GetProject(prj.Id);
 
-        prj.UserProjects.Should().Contain(x => x.User.UserName == _user1.UserName && x.Owner);
-        prj.UserProjects.Count().Should().Be(2);
+        prj!.UserProjects.Should().Contain(x => x.User.UserName == _user1.UserName && x.Owner);
+        prj.UserProjects.Count.Should().Be(2);
 
         await _projectService.LeaveProject(prj.Id);
 
@@ -264,7 +273,7 @@ public class ProjectServiceTests : BaseTest
         {
             prj = await _projectService.GetProject(prj.Id);
 
-            prj.UserProjects.Count.Should().Be(1);
+            prj!.UserProjects.Count.Should().Be(1);
             prj.UserProjects.Should().Contain(x => x.User.UserName == _user2.UserName && x.Owner);
         });
     }
@@ -298,7 +307,7 @@ public class ProjectServiceTests : BaseTest
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
             Name = "above anchor",
-            AboveProject = _anchorProject.Id
+            AboveProject = _anchorProject!.Id
         });
 
         var prj1 = await _projectService.CreateProject(new ProjectCreationInfo
@@ -309,10 +318,10 @@ public class ProjectServiceTests : BaseTest
 
         await _projectService.SwapProjectOrder(prj.Id, prj1.Id);
 
-        var uprj = await _projectService.GetProject(prj.Id);
-        var uprj1 = await _projectService.GetProject(prj1.Id);
-        Assert.AreEqual(prj.Order, uprj1.Order);
-        Assert.AreEqual(uprj.Order, prj1.Order);
+        var updatePrj = await _projectService.GetProject(prj.Id);
+        var updateRj1 = await _projectService.GetProject(prj1.Id);
+        Assert.AreEqual(prj.Order, updateRj1!.Order);
+        Assert.AreEqual(updatePrj!.Order, prj1.Order);
     }
 
     [Test]
@@ -335,9 +344,9 @@ public class ProjectServiceTests : BaseTest
         var cmt1 = await _projectService.AddComment(_anchorProject.Id,
             $"Hello from {_user2.DisplayName}");
 
-        var cmts = await _projectService.LoadComments(_anchorProject.Id);
+        var comments = await _projectService.LoadComments(_anchorProject.Id);
 
-        cmts.Should().Contain(c => c.Id == cmt.Id || c.Id == cmt1.Id);
+        comments.Should().Contain(c => c.Id == cmt.Id || c.Id == cmt1.Id);
     }
 
     [Test]
@@ -352,7 +361,7 @@ public class ProjectServiceTests : BaseTest
     public async Task Cannot_invite_invalid_user()
     {
         Func<Task> act = async () =>
-            await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_non_existance_user_name");
+            await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_invalid_user");
 
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
@@ -390,18 +399,13 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task None_project_collaborator_cannot_add_section()
     {
-        var prj = RunWithContextOfUser<Persistence.Entities.Project>(_user1,
+        var prj = RunWithContextOfUser(_user1,
             async () => await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"}));
 
-        Func<Task<ProjectSection>> act = async () => await RunWithContextOfUser<ProjectSection>(_user2,
+        Func<Task<ProjectSection>> act = async () => await RunWithContextOfUser(_user2,
             async () =>
             {
                 var sect = await _projectService.AddSection(prj.Id, "Test section");
-                TestContext.WriteLine($"Project UserProjects count = {sect.Project.UserProjects.Count}");
-                TestContext.WriteLine(
-                    $"Project UserProjects = {string.Join(",", sect.Project.UserProjects.Select(x => x.User.UserName))}");
-                TestContext.WriteLine(
-                    $"Invalid section created {prj.Id} - Sect {sect.Id} by user {UserContext.UserName}");
                 return sect;
             });
 
@@ -415,28 +419,53 @@ public class ProjectServiceTests : BaseTest
 
         var sect = await _projectService.AddSection(prj.Id, "Test section");
 
-        var updatedSect = await _projectService.UpdateSection(prj.Id, sect.Id, "New section name");
+        var updatedSect = await _projectService.UpdateSection(sect.Id, "New section name");
 
         sect = await _projectService.GetSection(sect.Id);
 
-        sect.Title.Should().Be(updatedSect.Title);
+        sect!.Title.Should().Be(updatedSect.Title);
     }
 
     [Test]
     public async Task Collaborator_update_project_section()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+        var (prj, sect) = await RunWithContextOfUser(_user1, async () =>
+        {
+            var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+            var section = await _projectService.AddSection(project.Id, "Test section");
 
-        var sect = await _projectService.AddSection(prj.Id, "Test section");
-
-        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+            await _projectService.InviteUserToProject(project.Id, _user2.UserName);
+            return (project, section);
+        });
 
         await RunWithContextOfUser(_user2,
-            async () => { await _projectService.UpdateSection(prj.Id, sect.Id, "New section name"); });
+            async () => { await _projectService.UpdateSection(sect.Id, "New section name"); });
 
         sect = await _projectService.GetSection(sect.Id);
 
-        sect.Title.Should().Be("New section name");
+        sect!.Title.Should().Be("New section name");
+    }
+
+    [Test]
+    public async Task Load_and_swap_section_order()
+    {
+        
+    }
+
+    [Test]
+    public async Task Archive_section_with_tasks()
+    {
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
+        var section = await _projectService.AddSection(project.Id, "Test section");
+        var task = await _taskRepository.Add(new Persistence.Entities.TodoTask
+        {
+            Title = "Test task",
+            Description = "Task for testing",
+            Priority = TaskPriority.Low,
+            Project = project,
+            Section = section
+        });
+        
     }
 
     #endregion

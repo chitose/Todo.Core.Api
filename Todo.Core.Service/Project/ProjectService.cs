@@ -92,7 +92,7 @@ public class ProjectService : IProjectService
                     Project = prj,
                     JoinedTime = DateTime.UtcNow
                 };
-                await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
+                await UnitOfWork.Current!.GetCurrentSession().PersistAsync(up, cancellationToken);
                 prj.UserProjects.Add(up);
                 await _projectRepository.Save(prj, cancellationToken);
             }
@@ -115,7 +115,7 @@ public class ProjectService : IProjectService
 
             if (u != null)
             {
-                await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
+                await UnitOfWork.Current!.GetCurrentSession().DeleteAsync(u, cancellationToken);
                 prj.UserProjects.Remove(u);
                 await _projectRepository.Save(prj, cancellationToken);
             }
@@ -138,10 +138,10 @@ public class ProjectService : IProjectService
             var u = prj.UserProjects.FirstOrDefault(x => x.User.UserName == userIdCtx);
             if (u != null)
             {
-                await UnitOfWork.Current.GetCurrentSession().DeleteAsync(u, cancellationToken);
+                await UnitOfWork.Current!.GetCurrentSession().DeleteAsync(u, cancellationToken);
                 prj.UserProjects.Remove(u);
                 var newOwner = prj.UserProjects.MinBy(x => x.JoinedTime);
-                newOwner.Owner = true;
+                newOwner!.Owner = true;
                 await UnitOfWork.Current.GetCurrentSession().PersistAsync(newOwner, cancellationToken);
                 await _projectRepository.Save(prj, cancellationToken);
             }
@@ -215,7 +215,7 @@ public class ProjectService : IProjectService
 
         if (string.IsNullOrWhiteSpace(creationInfo.Name))
         {
-            throw new ArgumentNullException("Project name is required.", nameof(creationInfo.Name));
+            throw new ArgumentNullException(nameof(creationInfo.Name), "Project name is required.");
         }
 
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
@@ -307,9 +307,9 @@ public class ProjectService : IProjectService
             {
                 throw new ProjectNotFoundException(projectId);
             }
-            
+
             ValidateProjectArchivedModification(prj);
-            
+
             var sect = new ProjectSection
             {
                 Project = prj,
@@ -322,7 +322,7 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task<ProjectSection> UpdateSection(int projectId, int sectId, string title,
+    public Task<ProjectSection> UpdateSection(int sectId, string title,
         CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
@@ -339,7 +339,7 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task SwapSectionOrder(int projectId, int source, int target, CancellationToken cancellationToken = default)
+    public Task SwapSectionOrder(int source, int target, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
@@ -347,12 +347,10 @@ public class ProjectService : IProjectService
         });
     }
 
-    public Task<ProjectSection> GetSection(int sectId, CancellationToken cancellationToken = default)
+    public Task<ProjectSection?> GetSection(int sectId, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
-        {
-            return _projectSectionRepository.GetByKey(sectId, cancellationToken);
-        });
+            _projectSectionRepository.GetByKey(sectId, cancellationToken));
     }
 
     public async Task<ProjectSection> ArchiveSection(int sectionId, CancellationToken cancellationToken = default)
@@ -413,7 +411,7 @@ public class ProjectService : IProjectService
     public Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default)
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(() => _projectSectionRepository.GetAll()
-            .Where(x => x.Project.Id == projectId).ToListAsync(cancellationToken));
+            .Where(x => x.Project!.Id == projectId).ToListAsync(cancellationToken));
     }
 
     #endregion
