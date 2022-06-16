@@ -61,6 +61,7 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
 
     private IQueryable<Project> GetUserProjectOnly()
     {
-        return Session.Query<Project>().Where(p => p.UserProjects.Any(u => u.User.UserName == UserContext.UserName));
+        var userName = UserContext.UserName;
+        return Session.Query<Project>().Where(p => p.UserProjects.Any(u => u.User.UserName == userName));
     }
 }

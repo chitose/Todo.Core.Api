@@ -302,7 +302,7 @@ public class ProjectService : IProjectService
     {
         return _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
         {
-            var prj = await _projectRepository.GetByKey(projectId);
+            var prj = await _projectRepository.GetByKey(projectId, cancellationToken);
             if (prj == null)
             {
                 throw new ProjectNotFoundException(projectId);

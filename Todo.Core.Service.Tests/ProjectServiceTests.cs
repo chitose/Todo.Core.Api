@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -9,6 +10,7 @@ using Todo.Core.Common.Exception;
 using Todo.Core.Common.Tests;
 using Todo.Core.Domain.Enum;
 using Todo.Core.Domain.Project;
+using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
 using Todo.Core.Service.Project;
 
@@ -135,7 +137,7 @@ public class ProjectServiceTests : BaseTest
         await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
-          {
+        {
             const string updateProjectName = "Update from user 2";
             Func<Task> act = async () => await _projectService.UpdateProject(prj.Id, new ProjectUpdateInfo
             {
@@ -151,10 +153,11 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Only_project_collaborator_can_see_project()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo
-        {
-            Name = "test"
-        });
+        var prj = await RunWithContextOfUser(_user1, async () => await _projectService.CreateProject(
+            new ProjectCreationInfo
+            {
+                Name = "test"
+            }));
 
         await RunWithContextOfUser(_user2, async () =>
         {
@@ -195,14 +198,18 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Only_owner_can_delete_project()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        var prj = await RunWithContextOfUser(_user1, async () =>
         {
-            Name = "User 1 project"
+            var prj = await _projectService.CreateProject(
+                new ProjectCreationInfo
+                {
+                    Name = "User 1 project"
+                });
+            prj.AuthorId.Should().Be(UserContext.UserName);
+
+            await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+            return prj;
         });
-
-        prj.AuthorId.Should().Be(UserContext.UserName);
-
-        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
         await RunWithContextOfUser(_user2, async () =>
         {
@@ -216,22 +223,24 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Remove_project_collaborator()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo
+        await RunWithContextOfUser(_user1, async () =>
         {
-            Name = "User 1 project"
+            var prj = await _projectService.CreateProject(new ProjectCreationInfo
+            {
+                Name = "User 1 project"
+            });
+            await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+            prj = await _projectService.GetProject(prj.Id);
+
+            prj.UserProjects.Count.Should().Be(2);
+
+            await _projectService.RemoveUserFromProject(prj.Id, _user2.UserName);
+
+            prj = await _projectService.GetProject(prj.Id);
+
+            prj.UserProjects.Count.Should().Be(1);
         });
-
-        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
-
-        prj = await _projectService.GetProject(prj.Id);
-
-        prj.UserProjects.Count.Should().Be(2);
-
-        await _projectService.RemoveUserFromProject(prj.Id, _user2.UserName);
-
-        prj = await _projectService.GetProject(prj.Id);
-
-        prj.UserProjects.Count.Should().Be(1);
     }
 
     [Test]
@@ -381,14 +390,22 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task None_project_collaborator_cannot_add_section()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+        var prj = RunWithContextOfUser<Persistence.Entities.Project>(_user1,
+            async () => await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"}));
 
-        Func<Task> act = async () => await _projectService.AddSection(prj.Id, "Test section");
+        Func<Task<ProjectSection>> act = async () => await RunWithContextOfUser<ProjectSection>(_user2,
+            async () =>
+            {
+                var sect = await _projectService.AddSection(prj.Id, "Test section");
+                TestContext.WriteLine($"Project UserProjects count = {sect.Project.UserProjects.Count}");
+                TestContext.WriteLine(
+                    $"Project UserProjects = {string.Join(",", sect.Project.UserProjects.Select(x => x.User.UserName))}");
+                TestContext.WriteLine(
+                    $"Invalid section created {prj.Id} - Sect {sect.Id} by user {UserContext.UserName}");
+                return sect;
+            });
 
-        await RunWithContextOfUser(_user2, async () =>
-        {
-            await act.Should().ThrowAsync<ProjectNotFoundException>();
-        });
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
     }
 
     [Test]
@@ -403,6 +420,23 @@ public class ProjectServiceTests : BaseTest
         sect = await _projectService.GetSection(sect.Id);
 
         sect.Title.Should().Be(updatedSect.Title);
+    }
+
+    [Test]
+    public async Task Collaborator_update_project_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
+
+        var sect = await _projectService.AddSection(prj.Id, "Test section");
+
+        await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
+
+        await RunWithContextOfUser(_user2,
+            async () => { await _projectService.UpdateSection(prj.Id, sect.Id, "New section name"); });
+
+        sect = await _projectService.GetSection(sect.Id);
+
+        sect.Title.Should().Be("New section name");
     }
 
     #endregion

@@ -90,33 +90,42 @@ public abstract class BaseTest
         UserContext.UserName = user.UserName;
         UserContext.UserDisplayName = user.DisplayName;
     }
-    
-    protected async Task RunWithContextOfUser(User user, Func<Task> action)
+
+    protected Task RunWithContextOfUser(User user, Func<Task> action)
     {
-        Task.Run(async () =>
+        return Task.Run(async () =>
         {
-            UserContext.CreateChildContext();
-            UserContext.UserName = user.UserName;
-            UserContext.UserDisplayName = user.DisplayName;
-            await action();
+            var content = UserContext.GetContent();
+            try
+            {
+                UserContext.CreateChildContext();
+                UserContext.UserName = user.UserName;
+                UserContext.UserDisplayName = user.DisplayName;
+                await action();
+            }
+            finally
+            {
+                UserContext.RestoreFromContent(content);
+            }
         });
     }
 
-    protected async Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)
+    protected Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)
     {
-        var content = UserContext.GetContent();
-        UserContext.UserName = user.UserName;
-        UserContext.UserDisplayName = user.DisplayName;
-        T result;
-        try
+        return Task.Run<T>(() =>
         {
-            result = await action();
-        }
-        finally
-        {
-            UserContext.RestoreFromContent(content);
-        }
-
-        return result;
+            var content = UserContext.GetContent();
+            try
+            {
+                UserContext.CreateChildContext();
+                UserContext.UserName = user.UserName;
+                UserContext.UserDisplayName = user.DisplayName;
+                return action();
+            }
+            finally
+            {
+                UserContext.RestoreFromContent(content);
+            }
+        });
     }
 }
