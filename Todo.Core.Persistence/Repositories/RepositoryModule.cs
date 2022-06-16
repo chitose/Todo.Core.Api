@@ -9,9 +9,6 @@ public class RepositoryModule : Module
         builder.RegisterGeneric(typeof(GenericEntityRepository<>))
             .As(typeof(IGenericRepository<>)).InstancePerLifetimeScope();
 
-        builder.RegisterGeneric(typeof(GenericReadonlyRepository<>))
-            .As(typeof(IGenericReadonlyRepository<>)).InstancePerLifetimeScope();
-
         builder.RegisterGeneric(typeof(CommentRepository<>))
             .As(typeof(ICommentRepository<>)).InstancePerLifetimeScope();
 

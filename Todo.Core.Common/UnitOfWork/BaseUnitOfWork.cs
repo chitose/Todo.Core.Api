@@ -6,10 +6,10 @@ public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession
     private static readonly AsyncLocal<UowWrapper<TUnit?>> _current =
         new()
         {
-            Value = null
+            Value = null!
         };
 
-    protected Lazy<TSession> _lazySession;
+    protected Lazy<TSession> LazySession = null!;
 
     protected BaseUnitOfWork()
     {
@@ -21,16 +21,13 @@ public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession
 
     public IBaseUnitOfWork<TSession>? Parent { get; }
 
-    public TSession GetCurrentSession()
-    {
-        return _lazySession.Value;
-    }
+    public abstract ISessionAccessor GetCurrentSession();
 
     public void Dispose()
     {
         if (_current.Value != null) _current.Value.UnitOfWork = Parent as TUnit;
 
-        GetCurrentSession()?.Dispose();
+        GetCurrentSession().Dispose();
         OnDispose();
     }
 
@@ -45,13 +42,13 @@ public abstract class BaseUnitOfWork<TUnit, TSession> : IBaseUnitOfWork<TSession
         // to be override by sub classes
     }
 
-    private class UowWrapper<TUOW>
+    private class UowWrapper<TUow>
     {
-        public UowWrapper(TUOW uow)
+        public UowWrapper(TUow uow)
         {
             UnitOfWork = uow;
         }
 
-        public TUOW UnitOfWork { get; set; }
+        public TUow UnitOfWork { get; set; }
     }
 }

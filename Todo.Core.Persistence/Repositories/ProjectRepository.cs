@@ -1,6 +1,5 @@
 ﻿using NHibernate.Linq;
 using Todo.Core.Common.Context;
-using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
 
@@ -42,21 +41,22 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
             Owner = true,
             JoinedTime = DateTime.UtcNow
         };
-        await UnitOfWork.Current.GetCurrentSession().PersistAsync(up, cancellationToken);
+        await Session.PersistAsync(up, cancellationToken);
         entity.UserProjects.Add(up);
-        
+
         return entity;
     }
 
     public override async Task DeleteByKey(int key, CancellationToken cancellationToken = default)
     {
-        var prj = await GetByKey(key, cancellationToken);
-        if (prj == null)
+        try
+        {
+            await base.DeleteByKey(key, cancellationToken);
+        }
+        catch (EntityNotFoundException)
         {
             throw new ProjectNotFoundException(key);
         }
-
-        await base.DeleteByKey(key, cancellationToken);
     }
 
     private IQueryable<Project> GetUserProjectOnly()

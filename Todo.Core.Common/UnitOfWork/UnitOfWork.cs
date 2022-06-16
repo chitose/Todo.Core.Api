@@ -9,7 +9,7 @@ public class UnitOfWork : BaseUnitOfWork<IUnitOfWork, ISession>, IUnitOfWork
 
     public UnitOfWork(ISessionFactory sessionFactory)
     {
-        _lazySession = new Lazy<ISession>(() =>
+        LazySession = new Lazy<ISession>(() =>
         {
             var session = sessionFactory.WithOptions().OpenSession();
             _transaction = session.BeginTransaction();
@@ -42,4 +42,6 @@ public class UnitOfWork : BaseUnitOfWork<IUnitOfWork, ISession>, IUnitOfWork
             throw;
         }
     }
+
+    public override ISessionAccessor GetCurrentSession() => new SessionAccessor(LazySession.Value);
 }

@@ -6,6 +6,11 @@ public class StatelessUnitOfWork : BaseUnitOfWork<IStatelessUnitOfWork, IStatele
 {
     public StatelessUnitOfWork(ISessionFactory sessionFactory)
     {
-        _lazySession = new Lazy<IStatelessSession>(sessionFactory.OpenStatelessSession);
+        LazySession = new Lazy<IStatelessSession>(sessionFactory.OpenStatelessSession);
+    }
+
+    public override ISessionAccessor GetCurrentSession()
+    {
+        return new StatelessSessionAccessor(LazySession.Value);
     }
 }

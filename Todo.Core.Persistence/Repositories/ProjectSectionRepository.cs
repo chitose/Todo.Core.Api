@@ -8,7 +8,7 @@ public class ProjectSectionRepository : GenericEntityRepository<ProjectSection>,
 {
     public override Task<ProjectSection?> GetByKey(int key, CancellationToken cancellationToken = default)
     {
-        return GetUserProjectSectionsOnly()
+        return GetAll()
             .FirstOrDefaultAsync(x => x.Id == key, cancellationToken: cancellationToken);
     }
 

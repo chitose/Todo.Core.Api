@@ -85,12 +85,6 @@ public abstract class BaseTest
         ExecutionContext.Restore(_executionCtx);
     }
 
-    protected void SwitchUser(User user)
-    {
-        UserContext.UserName = user.UserName;
-        UserContext.UserDisplayName = user.DisplayName;
-    }
-
     protected Task RunWithContextOfUser(User user, Func<Task> action)
     {
         return Task.Run(async () =>

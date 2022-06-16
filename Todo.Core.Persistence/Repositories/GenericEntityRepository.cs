@@ -2,12 +2,14 @@ using NHibernate;
 using NHibernate.Linq;
 using Todo.Core.Common.UnitOfWork;
 using Todo.Core.Persistence.Entities;
+using Todo.Core.Persistence.Exceptions;
 
 namespace Todo.Core.Persistence.Repositories;
 
 public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseEntity, new()
 {
-    protected ISession Session => UnitOfWork.Current?.GetCurrentSession();
+    protected ISessionAccessor Session =>
+        UnitOfWork.Current?.GetCurrentSession() ?? StatelessUnitOfWork.Current?.GetCurrentSession();
 
     public virtual IQueryable<TEntity> GetAll()
     {
@@ -40,6 +42,10 @@ public abstract class GenericEntityRepository<TEntity> : IGenericRepository<TEnt
     public virtual async Task DeleteByKey(int key, CancellationToken cancellationToken = default)
     {
         var entity = await GetByKey(key, cancellationToken);
+        if (entity == null)
+        {
+            throw new EntityNotFoundException(key, this.GetType().Name);
+        }
         await Delete(entity, cancellationToken);
     }
 }

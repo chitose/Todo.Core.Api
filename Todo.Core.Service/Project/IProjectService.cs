@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Todo.Core.Domain.Project;
+﻿using Todo.Core.Domain.Project;
 using Todo.Core.Persistence.Entities;
 
 namespace Todo.Core.Service.Project;
@@ -32,6 +31,8 @@ public interface IProjectService
     Task LeaveProject(int projectId, CancellationToken cancellationToken = default);
 
     Task SwapProjectOrder(int source, int target, CancellationToken cancellationToken = default);
+
+    Task<Persistence.Entities.Project> CloneProject(int project, CancellationToken cancellationToken = default);
 
     #endregion
 
@@ -68,7 +69,15 @@ public interface IProjectService
 
     Task DeleteSection(int sectionId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Gets list of project sections ordered by its Order
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<List<ProjectSection>> LoadSections(int projectId, CancellationToken cancellationToken = default);
+
+    Task<ProjectSection> CloneSection(int sectionId, CancellationToken cancellationToken = default);
 
     #endregion
 }

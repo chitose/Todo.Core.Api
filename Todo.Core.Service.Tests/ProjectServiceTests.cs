@@ -24,7 +24,7 @@ public class ProjectServiceTests : BaseTest
     private IProjectService _projectService = null!;
 
     private ITaskRepository _taskRepository = null!;
-    
+
     [OneTimeSetUp]
     public new async Task OneTimeSetup()
     {
@@ -44,6 +44,8 @@ public class ProjectServiceTests : BaseTest
         // update anchor project order
         _anchorProject = await _projectService.GetProject(_anchorProject!.Id);
     }
+
+    #region Project CRUD
 
     [Test]
     public async Task Create_project()
@@ -92,11 +94,24 @@ public class ProjectServiceTests : BaseTest
         });
 
         Assert.IsTrue(belowPrj.Order > _anchorProject.Order);
+
+        var act = async () => await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "Test",
+            BelowProject = 1,
+            AboveProject = 2
+        });
+
+        await act.Should().ThrowAsync<TodoException>();
     }
 
     [Test]
     public async Task Update_project()
     {
+        var act = async () => await _projectService.UpdateProject(-1, new ProjectCreationInfo());
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
         var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
             Name = "Test project"
@@ -230,14 +245,50 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task Get_projects(bool isArchived)
+    {
+        await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "test project 1",
+            Archived = isArchived
+        });
+
+        await _projectService.CreateProject(new ProjectCreationInfo
+        {
+            Name = "test project 2",
+            Archived = isArchived
+        });
+
+        var projects = await _projectService.GetProjects(isArchived);
+
+        Assert.IsTrue(projects.Count >= 2);
+        Assert.IsTrue(projects.All(p => p.Archived == isArchived));
+    }
+
+    #endregion
+
+    [Test]
     public async Task Remove_project_collaborator()
     {
+        Func<Task> act = async () => await _projectService.RemoveUserFromProject(-1, _user2.UserName);
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
         await RunWithContextOfUser(_user1, async () =>
         {
             var prj = await _projectService.CreateProject(new ProjectCreationInfo
             {
                 Name = "User 1 project"
             });
+
+            // ReSharper disable once AccessToModifiedClosure
+            act = async () => await _projectService.RemoveUserFromProject(prj.Id, _user2.UserName);
+
+            await act.Should().ThrowAsync<TodoException>()
+                .WithMessage("Cannot leave/remove user from project without any collaborator.");
+
             await _projectService.InviteUserToProject(prj.Id, _user2.UserName);
 
             prj = await _projectService.GetProject(prj.Id);
@@ -279,26 +330,27 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
-    [TestCase(true)]
-    [TestCase(false)]
-    public async Task Get_projects(bool isArchived)
+    public async Task Leave_not_collaborated_project_or_none_existence()
     {
-        await _projectService.CreateProject(new ProjectCreationInfo
+        Func<Task> act = async () => await _projectService.LeaveProject(-1);
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
+        var project = await RunWithContextOfUser(_user1, async () =>
         {
-            Name = "test project 1",
-            Archived = isArchived
+            var prj = _projectService.CreateProject(new ProjectCreationInfo() {Name = "User 1 project"});
+            Func<Task> act1 = async () => await _projectService.LeaveProject(prj.Id);
+
+            await act1.Should().ThrowAsync<TodoException>()
+                .WithMessage("Cannot leave/remove user from project without any collaborator.");
+
+            return prj;
         });
 
-        await _projectService.CreateProject(new ProjectCreationInfo
-        {
-            Name = "test project 2",
-            Archived = isArchived
-        });
+        act = async () =>
+            await RunWithContextOfUser(_user2, () => _projectService.LeaveProject(project.Id));
 
-        var projects = await _projectService.GetProjects(isArchived);
-
-        Assert.IsTrue(projects.Count >= 2);
-        Assert.IsTrue(projects.All(p => p.Archived == isArchived));
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
     }
 
     [Test]
@@ -325,8 +377,71 @@ public class ProjectServiceTests : BaseTest
     }
 
     [Test]
+    public async Task Invite_user()
+    {
+        Func<Task> act = async () => await _projectService.InviteUserToProject(-1, _user2.UserName);
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
+        act = async () =>
+            await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_invalid_user");
+
+        await act.Should().ThrowAsync<UserNotFoundException>();
+
+        await _projectService.InviteUserToProject(_anchorProject!.Id, _user2.UserName);
+        _anchorProject = await _projectService.GetProject(_anchorProject.Id);
+        _anchorProject!.UserProjects.Should().Contain(u => u.User.Id == _user2.Id);
+    }
+
+    [Test]
+    public async Task Archive_project()
+    {
+        var act = async () => await _projectService.ArchiveProject(-1);
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
+        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+
+        var task = await _unitOfWorkProvider.PerformActionInUnitOfWorkStateless(() => _taskRepository.Add(new Persistence.Entities.TodoTask
+        {
+            Project = project,
+            Title = "Test task"
+        }));
+
+        await _projectService.ArchiveProject(project.Id);
+
+        project = await _projectService.GetProject(project.Id);
+
+        project!.Archived.Should().BeTrue();
+
+        task = await _unitOfWorkProvider.PerformActionInUnitOfWorkStateless(() => _taskRepository.GetByKey(task.Id));
+
+        task!.Completed.Should().BeFalse();
+    }
+
+    [Test]
+    public async Task Unarchive_project()
+    {
+        var act = async () => await _projectService.UnarchiveProject(-1);
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
+        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+
+        await _projectService.ArchiveProject(project.Id);
+
+        await _projectService.UnarchiveProject(project.Id);
+
+        project = await _projectService.GetProject(project.Id);
+
+        project!.Archived.Should().BeFalse();
+    }
+
+    [Test]
     public async Task Add_comment()
     {
+        Func<Task> act = async () => await _projectService.AddComment(-1, "Hello");
+
+        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
         var cmt = await _projectService.AddComment(_anchorProject!.Id,
             "Hello");
 
@@ -338,32 +453,16 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Load_comments()
     {
-        var cmt = await _projectService.AddComment(_anchorProject!.Id,
-            $"Hello from {_user1.DisplayName}");
-        SwitchUser(_user2);
-        var cmt1 = await _projectService.AddComment(_anchorProject.Id,
-            $"Hello from {_user2.DisplayName}");
+        var cmt = await RunWithContextOfUser(_user1, async () => await _projectService.AddComment(_anchorProject!.Id,
+            $"Hello from {_user1.DisplayName}"));
 
-        var comments = await _projectService.LoadComments(_anchorProject.Id);
+
+        var cmt1 = await RunWithContextOfUser(_user2, async () => await _projectService.AddComment(_anchorProject!.Id,
+            $"Hello from {_user2.DisplayName}"));
+
+        var comments = await _projectService.LoadComments(_anchorProject!.Id);
 
         comments.Should().Contain(c => c.Id == cmt.Id || c.Id == cmt1.Id);
-    }
-
-    [Test]
-    public async Task Invite_user()
-    {
-        await _projectService.InviteUserToProject(_anchorProject!.Id, _user2.UserName);
-        _anchorProject = await _projectService.GetProject(_anchorProject.Id);
-        _anchorProject!.UserProjects.Should().Contain(u => u.User.Id == _user2.Id);
-    }
-
-    [Test]
-    public async Task Cannot_invite_invalid_user()
-    {
-        Func<Task> act = async () =>
-            await _projectService.InviteUserToProject(_anchorProject!.Id, "dummy_invalid_user");
-
-        await act.Should().ThrowAsync<UserNotFoundException>();
     }
 
     #region Sections
@@ -399,22 +498,26 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task None_project_collaborator_cannot_add_section()
     {
-        var prj = RunWithContextOfUser(_user1,
+        var prj = await RunWithContextOfUser(_user1,
             async () => await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"}));
 
-        Func<Task<ProjectSection>> act = async () => await RunWithContextOfUser(_user2,
-            async () =>
-            {
-                var sect = await _projectService.AddSection(prj.Id, "Test section");
-                return sect;
-            });
+        await RunWithContextOfUser(_user2, async () =>
+        {
+            Func<Task<ProjectSection>> act = async () =>
+                await _projectService.AddSection(prj.Id, "Test section");
 
-        await act.Should().ThrowAsync<ProjectNotFoundException>();
+
+            await act.Should().ThrowAsync<ProjectNotFoundException>();
+        });
     }
 
     [Test]
     public async Task Update_project_section()
     {
+        var act = async () => await _projectService.UpdateSection(-1, "Test");
+
+        await act.Should().ThrowAsync<SectionNotFoundException>();
+
         var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
 
         var sect = await _projectService.AddSection(prj.Id, "Test section");
@@ -429,13 +532,13 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Collaborator_update_project_section()
     {
-        var (prj, sect) = await RunWithContextOfUser(_user1, async () =>
+        var sect = await RunWithContextOfUser(_user1, async () =>
         {
             var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
             var section = await _projectService.AddSection(project.Id, "Test section");
 
             await _projectService.InviteUserToProject(project.Id, _user2.UserName);
-            return (project, section);
+            return section;
         });
 
         await RunWithContextOfUser(_user2,
@@ -449,23 +552,87 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Load_and_swap_section_order()
     {
-        
+        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test project"});
+        var section1 = await _projectService.AddSection(project.Id, "Section 1");
+        var section2 = await _projectService.AddSection(project.Id, "Section 2");
+
+        section1.Order.Should().BeLessThan(section2.Order);
+
+        await _projectService.SwapSectionOrder(section1.Id, section2.Id);
+
+        var sections = await _projectService.LoadSections(project.Id);
+
+        sections.Count.Should().Be(2);
+
+        sections.Should().BeInAscendingOrder(x => x.Order);
+        sections.First().Id.Should().Be(section2.Id);
+        sections.Last().Id.Should().Be(section1.Id);
     }
 
     [Test]
-    public async Task Archive_section_with_tasks()
+    public async Task Archive_unarchive_section_with_tasks()
     {
+        var act = async () => await _projectService.ArchiveSection(-1);
+
+        await act.Should().ThrowAsync<SectionNotFoundException>();
+
         var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
         var section = await _projectService.AddSection(project.Id, "Test section");
-        var task = await _taskRepository.Add(new Persistence.Entities.TodoTask
-        {
-            Title = "Test task",
-            Description = "Task for testing",
-            Priority = TaskPriority.Low,
-            Project = project,
-            Section = section
-        });
-        
+        var task = await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+            _taskRepository.Add(new Persistence.Entities.TodoTask
+            {
+                Title = "Test task",
+                Description = "Task for testing",
+                Priority = TaskPriority.Low,
+                Project = project,
+                Section = section
+            }));
+
+        // archive section
+
+        await _projectService.ArchiveSection(section.Id);
+
+        section = await _projectService.GetSection(section.Id);
+
+        section!.Archived.Should().BeTrue();
+
+        task = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _taskRepository.GetByKey(task.Id));
+
+        task!.Completed.Should().BeTrue();
+
+        // unarchive the section
+
+        act = async () => await _projectService.UnarchiveSection(-1);
+
+        await act.Should().ThrowAsync<SectionNotFoundException>();
+
+        await _projectService.UnarchiveSection(section.Id);
+
+        section = await _projectService.GetSection(section.Id);
+
+        section!.Archived.Should().BeFalse();
+
+        task = await _unitOfWorkProvider.PerformActionInUnitOfWork(() => _taskRepository.GetByKey(task.Id));
+
+        task!.Completed.Should().BeTrue();
+    }
+
+    [Test]
+    public async Task Delete_section()
+    {
+        var act = async () => await _projectService.DeleteSection(-1);
+
+        await act.Should().ThrowAsync<SectionNotFoundException>();
+
+        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+
+        var section = await _projectService.AddSection(project.Id, "Test section");
+
+        await _projectService.DeleteSection(section.Id);
+
+        section = await _projectService.GetSection(section.Id);
+
+        section.Should().BeNull();
     }
 
     #endregion
