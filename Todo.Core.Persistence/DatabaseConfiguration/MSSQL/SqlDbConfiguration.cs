@@ -1,4 +1,4 @@
-using NHibernate.Cfg;
+﻿using NHibernate.Cfg;
 using NHibernate.Dialect;
 using NHibernate.Driver;
 using Todo.Core.Common.Configuration;
@@ -6,12 +6,12 @@ using Todo.Core.Persistence.SessionFactory;
 
 namespace Todo.Core.Persistence.DatabaseConfiguration;
 
-public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
+public class SqlDbConfiguration : INhibernateDatabaseConfiguration
 {
     private readonly IConfigProvider _configProvider;
 
 
-    public SqliteDbConfiguration(IConfigProvider configProvider)
+    public SqlDbConfiguration(IConfigProvider configProvider)
     {
         _configProvider = configProvider;
     }
@@ -22,10 +22,12 @@ public class SqliteDbConfiguration : INhibernateDatabaseConfiguration
     {
         config.DataBaseIntegration(db =>
         {
-            db.ConnectionString = _configProvider.GetConnectionString("todo");
-            db.Dialect<SQLiteDialect>();
-            db.Driver<SQLite20Driver>();
+            db.ConnectionString = _configProvider.GetConnectionString("todo-mssql");
+            db.Dialect<MsSql2008Dialect>();
+            db.Driver<Sql2008ClientDriver>();
             db.LogSqlInConsole = true;
         });
     }
+
+    public string ConnectionType => "MSSQL";
 }

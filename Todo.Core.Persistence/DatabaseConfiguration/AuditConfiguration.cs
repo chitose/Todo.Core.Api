@@ -26,4 +26,6 @@ public class AuditConfiguration : INhibernateDatabaseConfiguration
 
         config.IntegrateWithEnvers(enversConf);
     }
+
+    public string ConnectionType => string.Empty;
 }

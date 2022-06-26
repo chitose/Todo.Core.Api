@@ -1,3 +1,4 @@
+using NHibernate.AspNetCore.Identity;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 using Todo.Core.Persistence.Entities;
@@ -8,9 +9,9 @@ public class UserMapping : JoinedSubclassMapping<User>
 {
     public UserMapping()
     {
-        Extends(typeof(NHibernate.AspNetCore.Identity.IdentityUser));
-        ExplicitDeclarationsHolder.AddAsRootEntity(typeof(NHibernate.AspNetCore.Identity.IdentityUser));
-        Table("user");
+        Extends(typeof(IdentityUser));
+        ExplicitDeclarationsHolder.AddAsRootEntity(typeof(IdentityUser));
+        Table("`user`");
         const string indexName = "user_idx";
         Key(k => k.Column("id"));
         Property(x => x.Photo, c => { c.Column("photo"); });
@@ -33,16 +34,15 @@ public class UserMapping : JoinedSubclassMapping<User>
             c.Length(255);
         });
 
-        Set(x => x.UserProjects, opt =>
+        Bag(x => x.UserProjects, opt =>
         {
             opt.Key(x => { x.Column("user_id"); });
-            opt.Cascade(Cascade.All);
+            opt.Cascade(Cascade.Merge.Include(Cascade.DeleteOrphans).Include(Cascade.Remove));
             opt.Inverse(true);
         }, opt => { opt.OneToMany(); });
 
-        Set(x => x.Tasks, m =>
+        Bag(x => x.Tasks, m =>
         {
-            m.Cascade(Cascade.None);
             m.Lazy(CollectionLazy.Lazy);
             m.Inverse(true);
             m.Key(c =>
@@ -52,21 +52,14 @@ public class UserMapping : JoinedSubclassMapping<User>
             });
         }, r => r.OneToMany());
 
-        Set(x => x.Labels, m =>
+        Bag(x => x.Labels, m =>
         {
             m.Key(c =>
             {
                 c.Column("owner_id");
                 c.ForeignKey("label_user_fk");
             });
-            m.Cascade(Cascade.All);
-            m.Lazy(CollectionLazy.Lazy);
-            m.Inverse(true);
-        }, r => r.OneToMany());
-
-        Set(x => x.Labels, m =>
-        {
-            m.Cascade(Cascade.All);
+            m.Cascade(Cascade.Remove);
             m.Lazy(CollectionLazy.Lazy);
             m.Inverse(true);
         }, r => r.OneToMany());

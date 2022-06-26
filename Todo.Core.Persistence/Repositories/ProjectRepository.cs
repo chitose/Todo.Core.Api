@@ -1,4 +1,5 @@
-﻿using NHibernate.Linq;
+﻿using NHibernate;
+using NHibernate.Linq;
 using Todo.Core.Common.Context;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
@@ -22,10 +23,15 @@ public class ProjectRepository : GenericEntityRepository<Project>, IProjectRepos
             .Fetch(x => x.UserProjects)
             .Where(x => x.Id == key)
             .ToListAsync(cancellationToken);
-        return result.FirstOrDefault();
+        var prj = result.FirstOrDefault();
+        if (prj != null)
+            foreach (var up in prj.UserProjects)
+                await NHibernateUtil.InitializeAsync(up.User, cancellationToken);
+
+        return prj;
     }
 
-    public override IQueryable<Project> GetAll()
+    public override IQueryable<Project> GetQuery()
     {
         return GetUserProjectOnly();
     }

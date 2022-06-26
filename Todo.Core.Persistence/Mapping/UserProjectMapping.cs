@@ -8,6 +8,7 @@ public class UserProjectMapping : ClassMapping<UserProject>
 {
     public UserProjectMapping()
     {
+        Schema("dbo");
         Table("user_project");
         Property(x => x.Owner, c => c.Column("owner"));
         Property(x => x.JoinedTime, c => c.Column("joined"));
@@ -16,19 +17,17 @@ public class UserProjectMapping : ClassMapping<UserProject>
             c.Column("id");
             c.Generator(Generators.Identity);
         });
+
         ManyToOne(x => x.Project, m =>
         {
             m.Column("project_id");
             m.NotNullable(true);
-            m.Cascade(Cascade.None);
         });
 
         ManyToOne(x => x.User, m =>
         {
             m.Column("user_id");
             m.NotNullable(true);
-            m.Cascade(Cascade.None);
-            m.Lazy(LazyRelation.NoLazy);
         });
     }
 }

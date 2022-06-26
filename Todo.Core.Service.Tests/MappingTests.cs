@@ -14,7 +14,8 @@ public class MappingTests : BaseTest
     [OneTimeSetUp]
     public new void OneTimeSetup()
     {
-        _mapper = _scope.Resolve<IMapper>();
+        using var scope = _container.BeginLifetimeScope();
+        _mapper = scope.Resolve<IMapper>();
     }
 
     private IMapper _mapper;
@@ -36,7 +37,7 @@ public class MappingTests : BaseTest
         };
 
         _mapper.Map(prjUpdateInfo, prj);
-        
+
         prj.Name.Should().BeEquivalentTo(prjUpdateInfo.Name);
         prj.Archived.Should().BeFalse();
         prj.View.Should().Be(prjUpdateInfo.View);

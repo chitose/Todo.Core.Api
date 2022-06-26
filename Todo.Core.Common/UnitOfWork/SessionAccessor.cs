@@ -1,10 +1,12 @@
-﻿using ISession = NHibernate.ISession;
+﻿using NHibernate;
+using ISession = NHibernate.ISession;
 
 namespace Todo.Core.Common.UnitOfWork;
 
 public class SessionAccessor : ISessionAccessor
 {
     private readonly ISession _session;
+
     public SessionAccessor(ISession session)
     {
         _session = session;
@@ -25,7 +27,8 @@ public class SessionAccessor : ISessionAccessor
         return _session.SaveAsync(entity, cancellationToken);
     }
 
-    public Task SaveOrUpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken) where TEntity : class, new()
+    public Task SaveOrUpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken)
+        where TEntity : class, new()
     {
         return _session.SaveOrUpdateAsync(entity, cancellationToken);
     }
@@ -38,5 +41,15 @@ public class SessionAccessor : ISessionAccessor
     public Task PersistAsync<TEntity>(TEntity entity, CancellationToken cancellationToken) where TEntity : class
     {
         return _session.PersistAsync(entity, cancellationToken);
+    }
+
+    public IQueryOver<TEntity, TEntity> QueryOver<TEntity>() where TEntity : class, new()
+    {
+        return _session.QueryOver<TEntity>();
+    }
+
+    public ISQLQuery CreateSql(string queryString)
+    {
+        return _session.CreateSQLQuery(queryString);
     }
 }

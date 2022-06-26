@@ -16,7 +16,7 @@ public static class RepositoryExtensions
             var target = await
                 repo.GetByKey(above ?? below!.Value, cancellationToken);
 
-            var otherEntitiesQuery = repo.GetAll();
+            var otherEntitiesQuery = repo.GetQuery();
             if (above.HasValue)
             {
                 order = target.Order - 1;
@@ -37,7 +37,7 @@ public static class RepositoryExtensions
         }
         else
         {
-            var maxdbOrder = (await repo.GetAll().OrderByDescending(x => x.Order).FirstOrDefaultAsync())?.Order ?? 0;
+            var maxdbOrder = (await repo.GetQuery().OrderByDescending(x => x.Order).FirstOrDefaultAsync())?.Order ?? 0;
             order = maxdbOrder + 1;
         }
 
@@ -48,14 +48,13 @@ public static class RepositoryExtensions
         CancellationToken cancellationToken = default)
         where T : BaseEntity, IOrderable, new()
     {
-        var projects = await repo.GetAll()
+        var projects = await repo.GetQuery()
             .Where(x => x.Id == source || x.Id == target).ToListAsync(cancellationToken);
 
         var sp = projects.FirstOrDefault(p => p.Id == source);
         var tp = projects.FirstOrDefault(p => p.Id == target);
         var obj = new T();
         if (sp == null)
-        {
             switch (obj)
             {
                 case Project _:
@@ -63,10 +62,8 @@ public static class RepositoryExtensions
                 case ProjectSection _:
                     throw new SectionNotFoundException(source);
             }
-        }
 
         if (tp == null)
-        {
             switch (obj)
             {
                 case Project _:
@@ -74,7 +71,6 @@ public static class RepositoryExtensions
                 case ProjectSection _:
                     throw new SectionNotFoundException(target);
             }
-        }
 
         (sp!.Order, tp!.Order) = (tp.Order, sp.Order);
 

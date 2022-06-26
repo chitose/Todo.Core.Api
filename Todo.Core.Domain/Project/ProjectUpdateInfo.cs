@@ -17,4 +17,6 @@ public class ProjectUpdateInfo
     public bool? SortAsc { get; set; }
 
     public bool? ShowCompleted { get; set; }
+    
+    public IList<LabelAssignment> Labels { get; set; }
 }

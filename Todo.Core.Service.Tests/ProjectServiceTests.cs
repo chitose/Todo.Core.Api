@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using FluentAssertions;
+using NHibernate.Linq;
 using NUnit.Framework;
 using Todo.Core.Common.Context;
 using Todo.Core.Common.Exception;
@@ -12,26 +14,21 @@ using Todo.Core.Domain.Project;
 using Todo.Core.Persistence.Entities;
 using Todo.Core.Persistence.Exceptions;
 using Todo.Core.Persistence.Repositories;
+using Todo.Core.Service.Label;
 using Todo.Core.Service.Project;
+using Todo.Core.Service.TodoTask;
 
 namespace Todo.Core.Service.Tests;
 
 [TestFixture]
 public class ProjectServiceTests : BaseTest
 {
-    private Persistence.Entities.Project? _anchorProject;
-
-    private IProjectService _projectService = null!;
-
-    private ITaskRepository _taskRepository = null!;
-
     [OneTimeSetUp]
     public new async Task OneTimeSetup()
     {
         RestoreExecutionContext();
-        _projectService = _scope.Resolve<IProjectService>();
-        _taskRepository = _scope.Resolve<ITaskRepository>();
-        _anchorProject = await _projectService.CreateProject(new ProjectCreationInfo
+        using var scope = _container.BeginLifetimeScope();
+        _anchorProject = await scope.Resolve<IProjectService>().CreateProject(new ProjectCreationInfo
         {
             Name = "Anchor project"
         });
@@ -41,11 +38,23 @@ public class ProjectServiceTests : BaseTest
     public new async Task Setup()
     {
         RestoreExecutionContext();
+        _projectService = _scope.Resolve<IProjectService>();
+        _taskRepository = _scope.Resolve<ITaskRepository>();
+        _labelService = _scope.Resolve<ILabelService>();
+        _taskService = _scope.Resolve<ITodoTaskService>();
         // update anchor project order
         _anchorProject = await _projectService.GetProject(_anchorProject!.Id);
     }
 
-    #region Project CRUD
+    private Persistence.Entities.Project? _anchorProject;
+
+    private IProjectService _projectService = null!;
+
+    private ITaskRepository _taskRepository = null!;
+
+    private ILabelService _labelService;
+
+    private ITodoTaskService _taskService;
 
     [Test]
     public async Task Create_project()
@@ -130,7 +139,7 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Cannot_update_archived_project()
     {
-        var prj = await _projectService.CreateProject(new ProjectCreationInfo()
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo
         {
             Name = "Archived project",
             Archived = true
@@ -141,7 +150,7 @@ public class ProjectServiceTests : BaseTest
             Name = "new name"
         });
 
-        await act.Should().ThrowAsync<TodoException>().WithMessage($"Cannot modify archived project");
+        await act.Should().ThrowAsync<TodoException>().WithMessage("Cannot modify archived project");
     }
 
     [Test]
@@ -209,14 +218,17 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Cannot_delete_other_project()
     {
-        var user2Prj = await RunWithContextOfUser(_user2, () => _projectService.CreateProject(new ProjectCreationInfo
+        var user2Prj = await RunWithContextOfUser(_user2, async () =>
+            await _projectService.CreateProject(new ProjectCreationInfo
+            {
+                Name = "User 2 project"
+            }));
+
+        await RunWithContextOfUser(_user1, async () =>
         {
-            Name = "User 2 project"
-        }));
-
-        Func<Task> act = async () => await _projectService.DeleteProject(user2Prj.Id);
-
-        await act.Should().ThrowAsync<ProjectNotFoundException>();
+            Func<Task> act = async () => await _projectService.DeleteProject(user2Prj.Id);
+            await act.Should().ThrowAsync<ProjectNotFoundException>();
+        });
     }
 
     [Test]
@@ -266,8 +278,6 @@ public class ProjectServiceTests : BaseTest
         Assert.IsTrue(projects.Count >= 2);
         Assert.IsTrue(projects.All(p => p.Archived == isArchived));
     }
-
-    #endregion
 
     [Test]
     public async Task Remove_project_collaborator()
@@ -338,7 +348,7 @@ public class ProjectServiceTests : BaseTest
 
         var project = await RunWithContextOfUser(_user1, async () =>
         {
-            var prj = _projectService.CreateProject(new ProjectCreationInfo() {Name = "User 1 project"});
+            var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "User 1 project"});
             Func<Task> act1 = async () => await _projectService.LeaveProject(prj.Id);
 
             await act1.Should().ThrowAsync<TodoException>()
@@ -399,13 +409,14 @@ public class ProjectServiceTests : BaseTest
 
         await act.Should().ThrowAsync<ProjectNotFoundException>();
 
-        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
 
-        var task = await _unitOfWorkProvider.PerformActionInUnitOfWorkStateless(() => _taskRepository.Add(new Persistence.Entities.TodoTask
-        {
-            Project = project,
-            Title = "Test task"
-        }));
+        var task = await _unitOfWorkProvider.PerformActionInUnitOfWorkStateless(() =>
+            _taskRepository.Add(new Persistence.Entities.TodoTask
+            {
+                Project = project,
+                Title = "Test task"
+            }));
 
         await _projectService.ArchiveProject(project.Id);
 
@@ -424,7 +435,7 @@ public class ProjectServiceTests : BaseTest
         var act = async () => await _projectService.UnarchiveProject(-1);
         await act.Should().ThrowAsync<ProjectNotFoundException>();
 
-        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
 
         await _projectService.ArchiveProject(project.Id);
 
@@ -464,8 +475,6 @@ public class ProjectServiceTests : BaseTest
 
         comments.Should().Contain(c => c.Id == cmt.Id || c.Id == cmt1.Id);
     }
-
-    #region Sections
 
     [Test]
     public async Task Add_project_section()
@@ -552,7 +561,7 @@ public class ProjectServiceTests : BaseTest
     [Test]
     public async Task Load_and_swap_section_order()
     {
-        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test project"});
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test project"});
         var section1 = await _projectService.AddSection(project.Id, "Section 1");
         var section2 = await _projectService.AddSection(project.Id, "Section 2");
 
@@ -624,7 +633,7 @@ public class ProjectServiceTests : BaseTest
 
         await act.Should().ThrowAsync<SectionNotFoundException>();
 
-        var project = await _projectService.CreateProject(new ProjectCreationInfo() {Name = "Test"});
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
 
         var section = await _projectService.AddSection(project.Id, "Test section");
 
@@ -635,5 +644,78 @@ public class ProjectServiceTests : BaseTest
         section.Should().BeNull();
     }
 
-    #endregion
+    [Test]
+    public async Task Delete_section_with_tasks()
+    {
+        var project = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
+
+        var section = await _projectService.AddSection(project.Id, "Test section");
+
+        var task = await _taskService.CreateTask(new TaskCreationInfo
+        {
+            Title = "Test task",
+            Description = "dummy desc",
+            Project = project.Id,
+            Section = section.Id
+        });
+
+        await _projectService.DeleteSection(section.Id);
+
+        task = await _taskService.GetByKey(task.Id);
+
+        task.Should().BeNull();
+    }
+
+    [Test]
+    public async Task Clone_section()
+    {
+        var prj = await _projectService.CreateProject(new ProjectCreationInfo {Name = "Test"});
+        var sect1 = await _projectService.AddSection(prj.Id, "Test section");
+        await _unitOfWorkProvider.PerformActionInUnitOfWork(async () =>
+        {
+            var lbl1 = await _labelService.CreateLabel("tag1", false);
+
+            var lbl2 = await _labelService.CreateLabel("tag2", false);
+
+            var parentTask = await _taskRepository.Add(new Persistence.Entities.TodoTask
+            {
+                Title = "Root task",
+                Section = sect1,
+                Project = prj,
+                Description = "Task with sub tasks",
+                Labels = new List<Persistence.Entities.Label> {lbl1, lbl2}
+            });
+
+            var childTask = await _taskRepository.Add(new Persistence.Entities.TodoTask
+            {
+                Title = "Child task",
+                Section = sect1,
+                Project = prj,
+                ParentTask = parentTask,
+                Description = "Child task",
+                Labels = new List<Persistence.Entities.Label> {lbl2}
+            });
+        });
+
+        var act = async () => await _projectService.CloneSection(-1);
+
+        await act.Should().ThrowAsync<SectionNotFoundException>();
+
+        var cloneSect = await _projectService.CloneSection(sect1.Id);
+
+        cloneSect.Title.Should().Be(sect1.Title);
+
+        var tasks = await _unitOfWorkProvider.PerformActionInUnitOfWork(() =>
+            _taskRepository.GetQuery()
+                .Fetch(x => x.ParentTask)
+                .Where(x => x.Section.Id == cloneSect.Id).ToListAsync());
+
+        tasks.Should().HaveCount(2);
+
+        var pt = tasks.FirstOrDefault(x => x.ParentTask == null);
+
+        pt.Should().NotBeNull();
+
+        tasks.Should().Contain(x => x.ParentTask != null && x.ParentTask.Id == pt.Id);
+    }
 }

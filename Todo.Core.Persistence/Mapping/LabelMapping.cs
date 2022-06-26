@@ -34,7 +34,7 @@ public class LabelMapping : BaseEntityMapping<Label>
             m.Cascade(Cascade.None);
         });
 
-        Set(x => x.Projects, colm =>
+        Bag(x => x.Projects, colm =>
         {
             colm.Table("project_label");
             colm.Key(c =>
@@ -46,7 +46,7 @@ public class LabelMapping : BaseEntityMapping<Label>
             colm.Lazy(CollectionLazy.Lazy);
         }, col => { col.ManyToMany(x => x.Column("project_id")); });
 
-        Set(x => x.Tasks, colm =>
+        Bag(x => x.Tasks, colm =>
         {
             colm.Table("task_label");
             colm.Key(c =>

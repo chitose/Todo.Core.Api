@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using NHibernate;
 using NSubstitute;
 using NUnit.Framework;
+using Todo.Core.Common.Configuration;
 using Todo.Core.Common.UnitOfWork;
 
 namespace Todo.Core.Common.Tests;
@@ -17,7 +19,7 @@ public class UnitOfWorkTests
     {
         var sessionFactoryMock = Substitute.For<ISessionFactory>();
         sessionFactoryMock.OpenSession().Returns(Substitute.For<ISession>());
-        var uowProvider = new UnitOfWorkProvider(sessionFactoryMock);
+        var uowProvider = new UnitOfWorkProvider(sessionFactoryMock,Substitute.For<IConfigProvider>() ,new List<ISessionListener>());
         using (var uow = uowProvider.Provide())
         {
             Assert.AreEqual(uow, UnitOfWork.UnitOfWork.Current);

@@ -20,7 +20,7 @@ public class ProjectMapping : BaseEntityMapping<Project>
             opt.Column(c =>
             {
                 c.Name("[default]");
-                c.Default(false);
+                c.Default(0);
             });
             opt.NotNullable(false);
         });
@@ -35,8 +35,8 @@ public class ProjectMapping : BaseEntityMapping<Project>
         {
             c.Column(x =>
             {
-                x.Name("view");
-                x.Default(ProjectView.List);
+                x.Name("[view]");
+                x.Default((byte) ProjectView.List);
             });
         });
         Property(x => x.GroupBy, c =>
@@ -55,7 +55,7 @@ public class ProjectMapping : BaseEntityMapping<Project>
             c.Column(x =>
             {
                 x.Name("sort_asc");
-                x.Default(true);
+                x.Default(1);
             });
         });
         Property(x => x.ShowCompleted, c =>
@@ -63,7 +63,7 @@ public class ProjectMapping : BaseEntityMapping<Project>
             c.Column(x =>
             {
                 x.Name("show_completed");
-                x.Default(false);
+                x.Default(0);
             });
         });
 
@@ -76,7 +76,7 @@ public class ProjectMapping : BaseEntityMapping<Project>
             });
         });
 
-        Set(x => x.Comments, c =>
+        Bag(x => x.Comments, c =>
         {
             c.Key(x =>
             {
@@ -85,18 +85,19 @@ public class ProjectMapping : BaseEntityMapping<Project>
                 x.ForeignKey("project_comment_fk");
             });
             c.Lazy(CollectionLazy.Lazy);
-            c.Cascade(Cascade.All);
+            c.Cascade(Cascade.Remove);
             c.Inverse(true);
         }, c => { c.OneToMany(); });
 
-        Set(x => x.UserProjects, colm =>
+
+        Bag(x => x.UserProjects, colm =>
         {
             colm.Key(c => { c.Column("project_id"); });
             colm.Inverse(true);
-            colm.Cascade(Cascade.All);
+            colm.Cascade(Cascade.Merge.Include(Cascade.DeleteOrphans).Include(Cascade.Remove));
         }, col => { col.OneToMany(); });
 
-        Set(x => x.Labels, colm =>
+        Bag(x => x.Labels, colm =>
         {
             colm.Table("project_label");
             colm.Key(c =>
@@ -105,15 +106,14 @@ public class ProjectMapping : BaseEntityMapping<Project>
                 c.ForeignKey("project_label_fk");
                 c.NotNullable(true);
             });
-            colm.Cascade(Cascade.None);
             colm.Lazy(CollectionLazy.Lazy);
         }, col => { col.ManyToMany(x => x.Column("label_id")); });
 
-        Set(x => x.Sections, m =>
+        Bag(x => x.Sections, m =>
         {
             m.Lazy(CollectionLazy.Lazy);
             m.Fetch(CollectionFetchMode.Join);
-            m.Cascade(Cascade.All);
+            m.Cascade(Cascade.Remove);
             m.Inverse(true);
             m.Key(c =>
             {
@@ -122,10 +122,10 @@ public class ProjectMapping : BaseEntityMapping<Project>
             });
         }, r => { r.OneToMany(); });
 
-        Set(x => x.Tasks, m =>
+        Bag(x => x.Tasks, m =>
             {
                 m.Lazy(CollectionLazy.Lazy);
-                m.Cascade(Cascade.All);
+                m.Cascade(Cascade.Remove);
                 m.Inverse(true);
                 m.Key(c =>
                 {

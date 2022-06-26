@@ -21,7 +21,6 @@ public class ProjectSectionMapping : BaseEntityMapping<ProjectSection>
 
         ManyToOne(x => x.Project, m =>
         {
-            m.Cascade(Cascade.None);
             m.Lazy(LazyRelation.Proxy);
             m.Column("project_id");
             m.ForeignKey("section_project_fk");
@@ -29,10 +28,10 @@ public class ProjectSectionMapping : BaseEntityMapping<ProjectSection>
             m.Fetch(FetchKind.Join);
         });
 
-        Set(x => x.Tasks, m =>
+        Bag(x => x.Tasks, m =>
         {
             m.Lazy(CollectionLazy.Lazy);
-            m.Cascade(Cascade.All);
+            m.Cascade(Cascade.Remove);
             m.Inverse(true);
             m.Key(x =>
             {

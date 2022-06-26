@@ -17,6 +17,7 @@ public abstract class BaseTest
     protected const string TestUserPassword = "N0P@ssw0rd4Ever";
     protected readonly string? TestUsername = "5B05D0F7-C9CA-4315-A1C2-C9CA4ADCD28A";
     protected readonly string? TestUsername2 = "BDAC1CBA-32FA-49B8-8512-A328E8083687";
+    protected IContainer _container;
 
     private ExecutionContext _executionCtx;
     protected ILifetimeScope _scope;
@@ -29,50 +30,49 @@ public abstract class BaseTest
     public async Task OneTimeSetup()
     {
         var builder = WebApplication.CreateBuilder();
-        var container = builder.UseAutofac(new[]
+        _container = builder.UseAutofac(new[]
         {
             "Todo.Core.*.dll"
         });
-        _scope = container.BeginLifetimeScope();
-        UserContext.UserDisplayName = "User for test";
-        UserContext.UserName = TestUsername;
-        _unitOfWorkProvider = _scope.Resolve<IUnitOfWorkProvider>();
-        var userRepo = _scope.Resolve<IUserRepository>();
+        using var scope = _container.BeginLifetimeScope();
+        _unitOfWorkProvider = scope.Resolve<IUnitOfWorkProvider>();
+        var userRepo = scope.Resolve<IUserRepository>();
 
         _user1 = await userRepo.FindByUserName(TestUsername);
         if (_user1 == null)
-        {
-            await userRepo.CreateUser(new User
+            _user1 = await userRepo.CreateUser(new User
             {
                 UserName = TestUsername,
+                DisplayName = "User 1",
                 Email = "test@todo.com"
             }, TestUserPassword);
-        }
 
         _user2 = await userRepo.FindByUserName(TestUsername2);
         if (_user2 == null)
-        {
-            await userRepo.CreateUser(new User
+            _user2 = await userRepo.CreateUser(new User
             {
                 UserName = TestUsername2,
+                DisplayName = "User 2",
                 Email = "test1@todo.com"
             }, TestUserPassword);
-        }
+
+        UserContext.UserName = TestUsername;
+        UserContext.UserDisplayName = _user1.DisplayName;
 
         SaveExecutionContext();
-    }
-
-    [OneTimeTearDown]
-    public async Task OneTimeTearDown()
-    {
-        RestoreExecutionContext();
-        await _scope.DisposeAsync();
     }
 
     [SetUp]
     public void Setup()
     {
         RestoreExecutionContext();
+        _scope = _container.BeginLifetimeScope();
+    }
+
+    [TearDown]
+    public void Teardown()
+    {
+        _scope.Dispose();
     }
 
     protected void SaveExecutionContext()
@@ -106,7 +106,7 @@ public abstract class BaseTest
 
     protected Task<T> RunWithContextOfUser<T>(User user, Func<Task<T>> action)
     {
-        return Task.Run<T>(() =>
+        return Task.Run(async () =>
         {
             var content = UserContext.GetContent();
             try
@@ -114,7 +114,7 @@ public abstract class BaseTest
                 UserContext.CreateChildContext();
                 UserContext.UserName = user.UserName;
                 UserContext.UserDisplayName = user.DisplayName;
-                return action();
+                return await action();
             }
             finally
             {

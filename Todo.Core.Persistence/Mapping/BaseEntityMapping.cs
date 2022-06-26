@@ -9,6 +9,7 @@ public abstract class BaseEntityMapping<T> : ClassMapping<T> where T : BaseEntit
 {
     protected BaseEntityMapping()
     {
+        Schema("dbo");
         Id(x => x.Id, c =>
         {
             c.Column("id");

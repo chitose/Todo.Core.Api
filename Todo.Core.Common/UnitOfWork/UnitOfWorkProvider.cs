@@ -1,24 +1,32 @@
 using NHibernate;
+using Todo.Core.Common.Configuration;
+using Todo.Core.Common.Extensions;
 
 namespace Todo.Core.Common.UnitOfWork;
 
 public class UnitOfWorkProvider : IUnitOfWorkProvider
 {
+    private readonly IEnumerable<ISessionListener> _listeners;
     private readonly ISessionFactory _sessionFactory;
 
-    public UnitOfWorkProvider(ISessionFactory sessionFactory)
+    public UnitOfWorkProvider(ISessionFactory sessionFactory,
+        IConfigProvider configProvider,
+        IEnumerable<ISessionListener> listeners)
     {
         _sessionFactory = sessionFactory;
+        var connectionType = configProvider.GetConnectionType();
+        _listeners = listeners.Where(l => string.IsNullOrWhiteSpace(l.ConnectionType)
+        || l.ConnectionType == connectionType);
     }
 
     public IUnitOfWork Provide()
     {
-        return new UnitOfWork(_sessionFactory);
+        return new UnitOfWork(_sessionFactory, _listeners);
     }
 
     public IStatelessUnitOfWork ProvideStateless()
     {
-        return new StatelessUnitOfWork(_sessionFactory);
+        return new StatelessUnitOfWork(_sessionFactory, _listeners);
     }
 
     public T PerformActionInUnitOfWork<T>(Func<T> actionResult)

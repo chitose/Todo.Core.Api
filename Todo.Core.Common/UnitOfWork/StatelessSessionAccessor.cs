@@ -5,11 +5,12 @@ namespace Todo.Core.Common.UnitOfWork;
 public class StatelessSessionAccessor : ISessionAccessor
 {
     private readonly IStatelessSession _statelessSession;
+
     public StatelessSessionAccessor(IStatelessSession session)
     {
         _statelessSession = session;
     }
-    
+
     public void Dispose()
     {
         _statelessSession.Dispose();
@@ -25,7 +26,8 @@ public class StatelessSessionAccessor : ISessionAccessor
         return _statelessSession.InsertAsync(entity, cancellationToken);
     }
 
-    public Task SaveOrUpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken) where TEntity : class, new()
+    public Task SaveOrUpdateAsync<TEntity>(TEntity entity, CancellationToken cancellationToken)
+        where TEntity : class, new()
     {
         return _statelessSession.UpdateAsync(entity, cancellationToken);
     }
@@ -38,5 +40,15 @@ public class StatelessSessionAccessor : ISessionAccessor
     public Task PersistAsync<TEntity>(TEntity entity, CancellationToken cancellationToken) where TEntity : class
     {
         return _statelessSession.InsertAsync(entity, cancellationToken);
+    }
+
+    public IQueryOver<TEntity, TEntity> QueryOver<TEntity>() where TEntity : class, new()
+    {
+        return _statelessSession.QueryOver<TEntity>();
+    }
+
+    public ISQLQuery CreateSql(string sqlStatement)
+    {
+        return _statelessSession.CreateSQLQuery(sqlStatement);
     }
 }
